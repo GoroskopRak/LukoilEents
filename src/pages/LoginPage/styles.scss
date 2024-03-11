@@ -1,0 +1,19 @@
+@import '../../styles/commonStyles.scss';
+.login-container {
+    justify-content: space-between;
+    overflow: hidden;
+
+    .half-container {
+        width: 50%;
+        height: 100vh;
+    }
+
+    .red {
+        background-color: $red;
+    }
+
+    .logo-wrapper {
+        margin-top: 17px;
+        margin-left: 80px;
+    }
+}
