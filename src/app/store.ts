@@ -1,9 +1,9 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
-import counterReducer from '../features/counter/counterSlice';
+import { loginSlice } from '../services/loginSlice';
 
 export const store = configureStore({
   reducer: {
-    counter: counterReducer,
+    Login: loginSlice.reducer,
   },
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
