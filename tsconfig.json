@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "outDir": "./dist/",
+		"sourceMap": true,
+		"noImplicitAny": true,
+    "target": "es6",
     "lib": [
       "dom",
       "dom.iterable",
@@ -19,11 +22,15 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": "./src",
     "paths": {
-			"@/*": ["./src/*"],
-		}
+      "@/components/*": ["components/*"],
+      "@/pages/*": ["pages/*"],
+      "@/app/*": ["app/*"],
+      
+      
+    }
   },
   "include": [
-    "src"
-, "react-app-env.in.ts"  ]
+    "src"]
 }

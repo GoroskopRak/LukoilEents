@@ -6,6 +6,24 @@
     .half-container {
         width: 50%;
         height: 100vh;
+
+        .form-container {
+            margin: 0 10%;
+
+            input {
+                margin: 10px 0;
+            }
+
+            button {
+                margin: 10px 0;
+            }
+
+            p {
+                color: #7D899A;
+                font-family: "ProximaNovaLight";
+            }
+
+        }
     }
 
     .red {
@@ -14,6 +32,6 @@
 
     .logo-wrapper {
         margin-top: 17px;
-        margin-left: 80px;
+        margin-left: 10%;
     }
 }

@@ -1,9 +1,11 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
-import { loginSlice } from '../services/loginSlice';
+import { loginSlice } from '../services/login/loginSlice';
+import { pointEventsSlice } from '../services/pointEvents/pointEventsSlice';
 
 export const store = configureStore({
   reducer: {
     Login: loginSlice.reducer,
+    PointEvents: pointEventsSlice.reducer,
   },
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({

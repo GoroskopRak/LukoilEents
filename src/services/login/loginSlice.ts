@@ -1,12 +1,12 @@
-import { BaseInstanse, RestInstanse } from '../app/axiosInstance'
+import { BaseInstanse, RestInstanse } from '../../app/axiosInstance'
 import { RootState } from '@/app/store'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
-import { RequestState } from './requestTypes'
+import { RequestState } from '../requestTypes'
 
 interface IInitialStateLogin {
 	loginAndPass: {
-		login: string
+		username: string
 		password: string
 	}
 	allowEntry: boolean | undefined
@@ -21,7 +21,7 @@ export interface IFetchLoginAppBasic {
 
 // Небольшая документация.
 // Накаждый запрос нужна basic auth
-// Поэтмоу пробрасываем поля логин пароль каждый раз, который будут храниться...пока не придумала где
+// Поэтмоу пробрасываем поля логин пароль каждый раз, который будут храниться в localStorage
 // Каждый раз запросы переадресовывают на html страницу, но мы это не ловим.
 // Открывать приложение локально надо на 5500 порту, и в njinx писать на него разрешение, если вдруг ошибки вознакают в cors
 
@@ -78,7 +78,7 @@ export const loginSlice = createSlice({
   name: "LoginSlice",
   initialState: {
 	loginAndPass: {
-		login: "",
+		username: "",
 		password: "",
 	}
   } as IInitialStateLogin,
@@ -86,9 +86,11 @@ export const loginSlice = createSlice({
   extraReducers(builder) {
     builder.addCase(fetchLoginAppBasic.fulfilled, (state, action) => {
       state.loginAndPass = {
-		login: action.meta.arg.login,
+		username: action.meta.arg.login,
 		password: action.meta.arg.password
 	}
+	localStorage.setItem('username', action.meta.arg.login)
+	localStorage.setItem('password', action.meta.arg.password)
     });
   },
 });
