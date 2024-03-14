@@ -3,3 +3,22 @@
 .App {
   text-align: center;
 }
+
+p,div,h1,h2,h3,h4,h5,h6 {
+  font-family: 'ProximaNova';
+}
+
+button {
+  background-color: $red;
+  border-radius: 10px;
+  border: none;
+  color: white;
+  height: 50px;
+  max-width: 100%;
+
+  &:hover {
+    cursor: pointer;
+    background-color: brown;
+
+  }
+}

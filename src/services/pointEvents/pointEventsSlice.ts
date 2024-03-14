@@ -13,18 +13,20 @@ interface IModifier {
 }
 
 interface IPointEvent {
-    Id: number,
+    SupplyPointName?: string
+	TypeLocalName?: string
+    Id?: number,
         TypeId: number,
-        CreatorId: number,
+        CreatorId?: number,
         SupplyPointId: number,
         BeginDate: string,
-        IsAccepted: boolean,
-        IsAcceptedUserId: number,
-        AcceptDate: {
+        IsAccepted?: boolean,
+        IsAcceptedUserId?: number,
+        AcceptDate?: {
             Seconds: number,
             Nanos: number
         },
-        CreatedDate: {
+        CreatedDate?: {
             Seconds: number,
             Nanos: number
         },
@@ -60,6 +62,30 @@ IPointEvent[],
 	}
 )
 
+export interface ICreteDraftSupplyPointEvents extends RequestInterface<IPointEvent> {
+    pointEvent: IPointEvent
+}
+
+
+export const createDraftSupplyPointEvent = createAsyncThunk<
+    IPointEvent,
+    ICreteDraftSupplyPointEvents
+>(
+	'DraftSupplyPointEvent/create',
+	async ({ pointEvent, onSuccess = () => null, onError = () => null }) => {
+		const response = await RestInstanse.post(`/draft-supply-point-event`, pointEvent, {...getAuth()})
+		const data: IPointEvent = await response.data
+
+		if (response.status === 200) {
+			onSuccess(data)
+		} else {
+			onError()
+		}
+
+		return data
+	}
+)
+
 
 export const pointEventsSlice = createSlice({
     name: "pointEventsSlice",
@@ -72,7 +98,6 @@ export const pointEventsSlice = createSlice({
       builder.addCase(fetchDraftSupplyPointEvent.fulfilled, (state, action) => {
         state.allPointEvents = action.payload
         state.allPointEventsStatus = 'fulfilled'
-       
       });
     },
   });

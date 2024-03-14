@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks"
 import { RootState } from "@/app/store"
-import { IFetchDraftSupplyPointEvents, fetchDraftSupplyPointEvent, selectAllPointEvents, selectAllPointEventsStatus } from "../services/pointEvents/pointEventsSlice"
+import { ICreteDraftSupplyPointEvents, IFetchDraftSupplyPointEvents, createDraftSupplyPointEvent, fetchDraftSupplyPointEvent, selectAllPointEvents, selectAllPointEventsStatus } from "../services/pointEvents/pointEventsSlice"
 import { LazyLoadableHook } from "../services/requestTypes"
 import { useEffect } from "react"
 
@@ -35,5 +35,21 @@ export const useGetDraftSupplyPointEvents = ({
 		status,
 		refresh: fetch,
         allPointEvents,
+	}
+}
+
+export const useCreateDraftSupplyPointEvent = ({
+	pointEvent,
+	onSuccess,
+	onError,
+}: ICreteDraftSupplyPointEvents) => {
+	const dispatch = useAppDispatch()
+
+	const createDraftSupplyPointEventHandler = () =>
+		dispatch(createDraftSupplyPointEvent({pointEvent, onSuccess, onError }))
+
+
+	return {
+		createPointEvent: createDraftSupplyPointEventHandler,
 	}
 }

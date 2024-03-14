@@ -1,6 +1,7 @@
 import React from 'react';
 import './styles/App.scss';
 import './styles/normalize.css'
+import './styles/fonts.css'
 import { Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage';
 import PointEventsPage from './pages/PointEventsPage/PointEventsPage';

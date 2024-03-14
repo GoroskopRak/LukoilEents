@@ -2,3 +2,27 @@
 .event-page-container {
     padding: 0 50px;
 }
+
+.point-events-table{
+    width: 90%;
+    padding: 50px 5%;
+
+    thead {
+        text-transform: uppercase;
+        color: #4B5768;
+        font-size: 14px;
+        td {
+            width: 15%;
+        }
+    }
+
+    tbody {
+        .table-row {
+            cursor: pointer;
+            &:hover {
+                color:lightgray;
+            }
+        }
+    }
+
+}
