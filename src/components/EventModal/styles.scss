@@ -19,5 +19,19 @@
         flex-direction: column;
         gap: 10px;
 
+        .custom-select {
+            width: 100%;
+            border: 1px solid lightgray;
+            border-radius: 5px;
+            padding: 5px;
+            color: #7D899A;
+        }
+
+        .period-container{
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
     }
 }
