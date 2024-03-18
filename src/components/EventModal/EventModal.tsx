@@ -6,6 +6,7 @@ import {
   useGetDraftSupplyPointEventObjects,
   useGetDraftSupplyPointEventTypes,
   useGetDraftSupplyPointEvents,
+  useUpdateDraftSupplyPointEvent,
 } from "src/hooks/pointEventsHook";
 import {
   IEventObject,
@@ -29,17 +30,29 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
     EndDate: "",
     Value: 0,
   },])
-  const [beginDate, setBeginDate] = useState<string>(currentEvent ? moment(currentEvent?.BeginDate).format("DD MM YYYY") : moment.utc().add(5, 'hours').format("DD MM YYYY"))
+  const [beginDate, setBeginDate] = useState<string>(currentEvent ? moment(currentEvent?.BeginDate).format("DD.MM.YYYY") : moment.utc().add(5, 'hours').format("DD.MM.YYYY"))
 
   const { refresh } = useGetDraftSupplyPointEvents({});
 
   const { availableEventObjects } = useGetDraftSupplyPointEventObjects({});
   const { availableEventTypes } = useGetDraftSupplyPointEventTypes({});
   const { createPointEvent } = useCreateDraftSupplyPointEvent()
+  const { updatePointEvent } = useUpdateDraftSupplyPointEvent()
 
   const onCloseModal = (e: React.MouseEvent<HTMLElement>) => {
       onClose();
   };
+
+  useEffect(() => {
+    if (!!currentEvent) {
+      setCurrentObject(availableEventObjects?.find((obj) => obj.Id === +currentEvent?.SupplyPointId))
+      setCurrentType(availableEventTypes?.find((type) => type.Id === +currentEvent?.TypeId))
+      setPeriods(currentEvent?.ModifierData)
+
+    }
+    
+
+  }, [currentEvent, availableEventObjects, availableEventTypes])
 
   const addPeriod = () => {
     setPeriods((prev) => {
@@ -57,8 +70,9 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
 
   const changePeriod = (e: React.ChangeEvent<HTMLInputElement>, i: number, inputType:  keyof IModifier) =>  {
     setPeriods((prev) => {
-      const newPeriods = prev
-      const value = inputType === 'BeginDate' || inputType === 'EndDate' ? String(moment().toJSON())?.split('T')?.[0]+'T'+e?.target?.value : e?.target?.value
+      const newPeriods = [...prev]
+      const value = inputType === 'BeginDate' || inputType === 'EndDate' ? String(moment().toJSON())?.split('T')?.[0]+'T'+e?.target?.value : inputType === 'Value' ?
+      +e?.target?.value : e?.target?.value
       newPeriods[i] = {...newPeriods[i], [inputType]: value, Position: currentObject?.Position,
 }
       return [
@@ -71,36 +85,45 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
     setBeginDate(e?.target?.value)
   }
 
-  const saveEvent = () => {
-    if (currentType?.Id && currentObject?.Id) {
-      createPointEvent({pointEvent: {
-        TypeId: currentType?.Id,
-        SupplyPointId: String(currentObject?.Id),
-        BeginDate: beginDate.split('.').reverse().join('-') + 'T00:00',
-        ModifierData: periods
-    }, onSuccess(data) {
-      refresh()
-    },})
+  const saveOrUpdateEvent = () => {
+    if (!!currentEvent) {//upd
+      updatePointEvent({pointEvent: {...currentEvent as IPointEvent}, onSuccess(data) {
+        refresh()
+      },})
+    } else {//save
+      if (currentType?.Id && currentObject?.Id) {
+        createPointEvent({pointEvent: {
+          TypeId: currentType?.Id,
+          SupplyPointId: String(currentObject?.Id),
+          BeginDate: beginDate.split('.').reverse().join('-') + 'T00:00',
+          ModifierData: periods
+      }, onSuccess(data) {
+        refresh()
+      },})
+      }
     }
   }
+
 
   return (
     <div className="modal-background" >
       <div className="modal-body">
+        <div className="scroll-container">
         <LeftOutlined onClick={onCloseModal} style={{fontSize: '30px'}}/>
         <h2>{!!currentEvent ? "Редактирование" : "Создание"} события</h2>
-        <p>Введите данные для редактирования события и сохраните изменения</p>
+        <p>Введите данные для {!!currentEvent ? "редактирования" : "создания"} события и сохраните изменения</p>
         <InputMask mask="99.99.9999" name="BeginDate" type="text" placeholder="Дата" value={beginDate} onChange={changeBeginDate}/>
         <div>
           <select
             className="custom-select"
             onChange={(e) =>
-              setCurrentObject(availableEventObjects[+e?.target?.value])
+              setCurrentObject(availableEventObjects?.find((obj) => obj.Id ===+e?.target?.value))
             }
+            value={currentObject?.Id}
           >
             <option value={-1}>Объект:</option>
             {availableEventObjects?.map((object, i) => (
-              <option value={i}>{object?.SupplyPointName}</option>
+              <option value={object?.Id}>{object?.SupplyPointName}</option>
             ))}
           </select>
         </div>
@@ -108,12 +131,13 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
           <select
             className="custom-select"
             onChange={(e) =>
-              setCurrentType(availableEventTypes[+e?.target?.value])
+              setCurrentType(availableEventTypes?.find((type) => type.Id ===+e?.target?.value))
             }
+            value={currentType?.Id}
           >
             <option value={-1}>Тип:</option>
             {availableEventTypes?.map((type, i) => (
-              <option value={i}>{type?.LocalName}</option>
+              <option value={type?.Id}>{type?.LocalName}</option>
             ))}
           </select>
         </div>
@@ -122,8 +146,8 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
           {periods?.map((period,i) => (
             <div className="period-container">
               Период {i+1}
-            <InputMask  mask="99:99" value={period?.BeginDate?.split('T')?.[1]} placeholder="Время начала" onChange={(e) => changePeriod(e,i,'BeginDate')}/>
-            <InputMask  mask="99:99" value={period?.EndDate?.split('T')?.[1]} placeholder="Время конца" onChange={(e) => changePeriod(e,i,'EndDate')}/>
+            <InputMask mask="99:99" value={period?.BeginDate?.split('T')?.[1]} placeholder="Время начала" onChange={(e) => changePeriod(e,i,'BeginDate')}/>
+            <InputMask mask="99:99" value={period?.EndDate?.split('T')?.[1]} placeholder="Время конца" onChange={(e) => changePeriod(e,i,'EndDate')}/>
             <input type="text" value={period?.Value} placeholder="Модификатор" onChange={(e) => changePeriod(e,i,'Value')}/>
             </div>
           ))}
@@ -131,7 +155,8 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
         <div>
           <button onClick={addPeriod}>+ Добавить период</button>
         </div>
-        <button onClick={saveEvent}>Сохранить</button>
+        <button onClick={saveOrUpdateEvent}>Сохранить</button>
+        </div>
       </div>
     </div>
   );

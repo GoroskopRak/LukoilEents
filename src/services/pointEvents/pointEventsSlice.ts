@@ -136,6 +136,30 @@ export const createDraftSupplyPointEvent = createAsyncThunk<
 	}
 )
 
+export interface IUpdateDraftSupplyPointEvents extends RequestInterface<IPointEvent> {
+  pointEvent: IPointEvent
+}
+
+
+export const updateDraftSupplyPointEvent = createAsyncThunk<
+  IPointEvent,
+  IUpdateDraftSupplyPointEvents
+>(
+'DraftSupplyPointEvent/update',
+async ({ pointEvent, onSuccess = () => null, onError = () => null }) => {
+  const response = await RestInstanse.put(`/draft-supply-point-event`, pointEvent, {...getAuth()})
+  const data: IPointEvent = await response.data
+
+  if (response.status === 200) {
+    onSuccess(data)
+  } else {
+    onError()
+  }
+
+  return data
+}
+)
+
 export interface IDeleteDraftSupplyPointEvents extends RequestInterface<IPointEvent> {
   id: number
 }

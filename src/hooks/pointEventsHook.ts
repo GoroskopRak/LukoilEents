@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks"
 import { RootState } from "@/app/store"
-import { ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvents, IFetchDraftSupplyPointEvents, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus } from "../services/pointEvents/pointEventsSlice"
+import { ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvents, IFetchDraftSupplyPointEvents, IUpdateDraftSupplyPointEvents, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus, updateDraftSupplyPointEvent } from "../services/pointEvents/pointEventsSlice"
 import { LazyLoadableHook } from "../services/requestTypes"
 import { useEffect } from "react"
 
@@ -112,6 +112,22 @@ export const useCreateDraftSupplyPointEvent = () => {
 
 	return {
 		createPointEvent: createDraftSupplyPointEventHandler,
+	}
+}
+
+export const useUpdateDraftSupplyPointEvent = () => {
+	const dispatch = useAppDispatch()
+
+	const updateDraftSupplyPointEventHandler = ({
+		pointEvent,
+		onSuccess,
+		onError,
+	}: IUpdateDraftSupplyPointEvents) =>
+		dispatch(updateDraftSupplyPointEvent({pointEvent, onSuccess, onError }))
+
+
+	return {
+		updatePointEvent: updateDraftSupplyPointEventHandler,
 	}
 }
 
