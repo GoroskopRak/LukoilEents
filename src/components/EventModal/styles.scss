@@ -1,3 +1,4 @@
+@import '../../styles/commonStyles.scss';
 .modal-background {
     background-color: rgba(0, 0, 0, .2);
     width: 100%;
@@ -6,7 +7,7 @@
     top: 0;
     left: 0;
 
-    .modal-body{
+    .modal-body {
         width: 50%;
         height: 100%;
         max-height: 100vh;
@@ -18,31 +19,82 @@
 
         .scroll-container {
             padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            p {
+                color: #7D899A;
+            }
 
         }
 
         .custom-select {
             width: 100%;
             border: 1px solid lightgray;
-            border-radius: 5px;
-            padding: 5px;
+            border-radius: 10px;
+            padding: 10px;
+            height: 52px;
             color: #7D899A;
+            background-color: #F9F9F9;
+
+            option {
+                border: 1px solid lightgray;
+            border-radius: 10px;
+            padding: 10px;
+            height: 52px !important;
+            }
         }
 
-        .period-container{
+        .pair-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .pair {
+                display: flex;
+                gap: 10px;
+                align-items: baseline;
+
+                input {
+                    width: 110px;
+                }
+
+                select {
+                    width: 132px;
+                }
+                
+            }
+
+            .red-line {
+                width: 100%;
+                height: 2px;
+                background-color: $red;
+                margin: 10px;
+            }
+        }
+
+        .period-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
+
+            .period {
+                margin-top: 10px;
+            }
+
+
         }
 
     }
 }
 
+
+
 @media screen and (max-width: 800px) {
-    .modal-background {.modal-body{
-        width: 100%;
-    }}
-  }
+    .modal-background {
+        .modal-body {
+            width: 100%;
+        }
+    }
+}

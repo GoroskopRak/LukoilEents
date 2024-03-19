@@ -1,8 +1,4 @@
 import React, { FormEvent, useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-// import  './styles.scss'
-import { useAppDispatch } from "../../app/hooks";
-import { fetchLoginAppBasic } from "../../services/login/loginSlice";
 import { IPointEvent, fetchDraftSupplyPointEvent } from "../../services/pointEvents/pointEventsSlice";
 import { useDeleteDraftSupplyPointEvent, useGetDraftSupplyPointEvents } from "../../hooks/pointEventsHook";
 import Header from "../../components/Header/header";
@@ -10,11 +6,15 @@ import "./styles.scss";
 import Moment from "react-moment";
 import "moment-timezone";
 import EventModal from "../../components/EventModal/EventModal";
+import { DeleteOutlined } from "@ant-design/icons";
+import { AxisOptions, Chart } from "react-charts";
+import { Positions, Series } from "./types";
 
 export const PointEventsPage = () => {
   const { allPointEvents, refresh } = useGetDraftSupplyPointEvents({});
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<IPointEvent>(); //true-edit, false-create
+  const [chartsData, setChartsData] = useState<Record<string,Series[]>>({})
 
   const {deletePointEvent} = useDeleteDraftSupplyPointEvent()
 
@@ -29,20 +29,57 @@ export const PointEventsPage = () => {
     setCurrentEvent(curr);
   };
 
-  const onDeleteEvent = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, id: number) => {
+  const onDeleteEvent = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>, id: number) => {
     e.stopPropagation()
-    deletePointEvent({id, onSuccess(data) {
-      refresh()
-    },})
+    const answer = window.confirm("Удалить?")
+    if (answer) {
+      deletePointEvent({id, onSuccess(data) {
+        refresh()
+      },})
+    }
+    
   }
+
+useEffect(() => {
+  allPointEvents?.forEach((point) => {
+    const data: Series[] = []
+    const dataModifier: Positions[] = []
+    point?.ModifierData?.forEach((position, i) => {
+      dataModifier?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+      dataModifier?.push({date: +position?.EndDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+    })
+    data?.push({label: point.SupplyPointName as string, data: dataModifier})
+    
+    setChartsData((prev) => {return {...prev, [String(point?.Id)]: data}})
+  })
+}, [allPointEvents])
+  const primaryAxis = React.useMemo(
+    (): AxisOptions<Positions> => ({
+      getValue: datum => datum.date,
+      show: false,
+        showDatumElements: false,
+        
+    }),
+    []
+  )
+  const secondaryAxes = React.useMemo(
+    (): AxisOptions<Positions>[] => [
+      {
+        getValue: datum => datum.value,
+        show: false,
+        showDatumElements: false,
+      },
+    ],
+    []
+  )
 
   return (
     <div className="event-page-container">
       <Header />
-      <h2>События</h2>
+      <h1>События</h1>
       <div className="flex-between">
         <button>фильтр</button>
-        <button onClick={onCreateEvent}>Создать событие</button>
+        <button onClick={onCreateEvent}>+ Создать событие</button>
       </div>
 
       <table className="point-events-table">
@@ -76,9 +113,18 @@ export const PointEventsPage = () => {
                     (modifier) => modifier.Position + ", "
                   )}
                 </td>
-                <td data-field="Value">График</td>
+                <td data-field="Value">{chartsData?.[String(point?.Id)] && <Chart
+                
+          options={{
+            data: chartsData?.[String(point?.Id)],
+            primaryAxis,
+            secondaryAxes,
+          }}
+          style={{top: '0px', fill: 'red'}}
+        />}</td>
                 <td data-field="Value">
-                  <button onClick={(e) => onDeleteEvent(e, point?.Id as number)}>Удалить</button>
+                  <div className="table-actions"><DeleteOutlined onClick={(e) => onDeleteEvent(e, point?.Id as number)}/></div>
+                
                 </td>
               </tr>
             ))}

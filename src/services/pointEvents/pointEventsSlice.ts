@@ -35,6 +35,8 @@ interface IInitialStateLogin {
     availableEventObjectsStatus: RequestState
     availableEventTypes: IEventType[]
     availableEventTypesStatus: RequestState
+    availableEventPositions: Record<string,IEventPosition[]>
+    availableEventPositionsStatus: RequestState
 }
 
 export interface IFetchDraftSupplyPointEvents extends RequestInterface<string> {
@@ -87,8 +89,44 @@ IEventObject[],
 	}
 )
 
+export interface IEventPosition {
+  Id: number;
+  UserId: number;
+  SupplyPointMappingId: number;
+  Position: string;
+  SupplyPointName: string;
+  MappedSupplyPointName: string;
+}
+
+export interface IGetDraftSupplyPointPositions extends RequestInterface<IEventPosition[]> {
+  supplyPointId: number
+}
+
+
+export const getDraftSupplyPointEventPositions = createAsyncThunk<
+IEventPosition[],
+IGetDraftSupplyPointPositions
+>(
+  "DraftSupplyPointEventPositions/get",
+  async ({ supplyPointId, onSuccess = () => null, onError = () => null }) => {
+    const response = await RestInstanse.get(
+      `/user-supply-point-position-mapping/by-user-and-sp?supplyPointId=${supplyPointId}`,
+      { ...getAuth() }
+    );
+    const data: IEventPosition[] = await response.data;
+
+    if (response.status === 200) {
+      onSuccess(data);
+    } else {
+      onError();
+    }
+
+    return data;
+  }
+);
+
 export interface IEventType{
-    Id: 2,
+    Id: number,
     LocalName: string,
     DraftSupplyPointEventOperationType: string
 }
@@ -195,6 +233,8 @@ export const pointEventsSlice = createSlice({
         availableEventObjectsStatus: undefined,
         availableEventTypes: [],
         availableEventTypesStatus: undefined,
+        availableEventPositions: {},
+        availableEventPositionsStatus: undefined,
     } as IInitialStateLogin,
     reducers: {},
     extraReducers(builder) {
@@ -207,6 +247,9 @@ export const pointEventsSlice = createSlice({
       });
       builder.addCase(fetchDraftSupplyPointEventTypes.fulfilled, (state, action) => {
         state.availableEventTypes = action.payload
+      });
+      builder.addCase(getDraftSupplyPointEventPositions.fulfilled, (state, action) => {
+        state.availableEventPositions[action.meta.arg.supplyPointId] = action.payload
       });
     },
   });
@@ -234,3 +277,11 @@ export const selectAvailableEventTypes = (
 export const selectAvailableEventTypesStatus = (
 	state: RootState,
 ) => state.PointEvents.availableEventTypesStatus
+
+export const selectAvailableEventPosotions = (
+	state: RootState,
+) => state.PointEvents.availableEventPositions
+
+export const selectAvailableEventPosotionsStatus = (
+	state: RootState,
+) => state.PointEvents.availableEventPositionsStatus

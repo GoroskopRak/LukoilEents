@@ -30,7 +30,7 @@ const LoginPage = () => {
 			<div className='half-container'>
 				<LogoSvg/>
 				<div className='form-container'>
-				<h2>Вход в систему</h2>
+				<h1>Вход в систему</h1>
 				<p>Введите логин и пароль для осуществления входа в систему enrsoft</p>
 				{/* <form action="https://dev.enrsoft.ru/login.html" method="post"> */}
 				<form className='flex-column' onSubmit={(e) => onLogin(e)}>

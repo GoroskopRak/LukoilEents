@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks"
 import { RootState } from "@/app/store"
-import { ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvents, IFetchDraftSupplyPointEvents, IUpdateDraftSupplyPointEvents, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus, updateDraftSupplyPointEvent } from "../services/pointEvents/pointEventsSlice"
+import { ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvents, IFetchDraftSupplyPointEvents, IGetDraftSupplyPointPositions, IUpdateDraftSupplyPointEvents, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, getDraftSupplyPointEventPositions, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventPosotions, selectAvailableEventPosotionsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus, updateDraftSupplyPointEvent } from "../services/pointEvents/pointEventsSlice"
 import { LazyLoadableHook } from "../services/requestTypes"
 import { useEffect } from "react"
 
@@ -96,6 +96,35 @@ export const useGetDraftSupplyPointEventTypes = ({
 		status,
 		refresh: fetch,
         availableEventTypes,
+	}
+}
+
+export const useGetDraftSupplyPointEventPositions = ({
+	onSuccess,
+	onError,
+	lazyLoad,
+}: IGetDraftSupplyPointEvents) => {
+	const dispatch = useAppDispatch()
+
+	// const status = useAppSelector((state: RootState) =>
+    // selectAvailableEventPosotionsStatus(state)
+	// )
+	const availableEventPositions = useAppSelector((state: RootState) =>
+    selectAvailableEventPosotions(state)
+	)
+
+	const getDraftSupplyPointEventPositionsHandler = ({
+		supplyPointId,
+		onSuccess,
+		onError,
+	}: IGetDraftSupplyPointPositions) =>
+	dispatch(getDraftSupplyPointEventPositions({supplyPointId}))
+
+	return {
+		// status,
+		// refresh: fetch,
+        availableEventPositions,
+		getPositionsByPointId: getDraftSupplyPointEventPositionsHandler,
 	}
 }
 
