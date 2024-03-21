@@ -9,7 +9,14 @@ export interface IModifier {
     BeginDate: string,
     EndDate: string,
     Value: number,
-    Position?: string
+    Position: string
+}
+
+export interface IPeriodModifier {
+  BeginDate: string,
+  EndDate: string,
+  Value: number[],
+  Position: string[]
 }
 
 export interface IPointEvent {
@@ -39,17 +46,22 @@ interface IInitialStateLogin {
     availableEventPositionsStatus: RequestState
 }
 
-export interface IFetchDraftSupplyPointEvents extends RequestInterface<string> {
+export interface IFetchDraftSupplyPointEvents extends RequestInterface<IPointEvent[]> {
+  searchPattern?: string
+  beginDate?: string
 }
 
 
 export const fetchDraftSupplyPointEvent = createAsyncThunk<
 IPointEvent[],
-	RequestInterface<IPointEvent[]>
+IFetchDraftSupplyPointEvents
 >(
 	'DraftSupplyPointEvent/get',
-	async ({ onSuccess = () => null, onError = () => null }) => {
-		const response = await RestInstanse.get(`/draft-supply-point-event`,{...getAuth()})
+	async ({ searchPattern, beginDate, onSuccess = () => null, onError = () => null }) => {
+		const response = await RestInstanse.get(`/draft-supply-point-event`,{...getAuth(), params:{
+      searchPattern,
+      beginDate
+    }})
 		const data: IPointEvent[] = await response.data
 
 		if (response.status === 200) {
@@ -63,6 +75,7 @@ IPointEvent[],
 )
 
 export interface IEventObject {
+    SupplyPointId: number
     Id: number,
     UserId: number,
     SupplyPointMappingId: number,
@@ -94,6 +107,7 @@ export interface IEventPosition {
   UserId: number;
   SupplyPointMappingId: number;
   Position: string;
+  InstCapacity: number;
   SupplyPointName: string;
   MappedSupplyPointName: string;
 }
@@ -198,18 +212,42 @@ async ({ pointEvent, onSuccess = () => null, onError = () => null }) => {
 }
 )
 
-export interface IDeleteDraftSupplyPointEvents extends RequestInterface<IPointEvent> {
+export interface IDeleteDraftSupplyPointEvent extends RequestInterface<IPointEvent> {
   id: number
 }
 
 
 export const deleteDraftSupplyPointEvent = createAsyncThunk<
   IPointEvent,
-  IDeleteDraftSupplyPointEvents
+  IDeleteDraftSupplyPointEvent
 >(
 'DraftSupplyPointEvent/delete',
 async ({ id, onSuccess = () => null, onError = () => null }) => {
   const response = await RestInstanse.delete(`/draft-supply-point-event?id=${id}`, {...getAuth()})
+  const data: IPointEvent = await response.data
+
+  if (response.status === 204) {
+    onSuccess(data)
+  } else {
+    onError()
+  }
+
+  return data
+}
+)
+
+export interface IAcceptDraftSupplyPointEvent extends RequestInterface<IPointEvent> {
+  id: number
+}
+
+
+export const acceptDraftSupplyPointEvent = createAsyncThunk<
+  IPointEvent,
+  IAcceptDraftSupplyPointEvent
+>(
+'DraftSupplyPointEvent/accept',
+async ({ id, onSuccess = () => null, onError = () => null }) => {
+  const response = await RestInstanse.post(`/draft-supply-point-event/accept?id=${id}`,{} ,{...getAuth()})
   const data: IPointEvent = await response.data
 
   if (response.status === 204) {

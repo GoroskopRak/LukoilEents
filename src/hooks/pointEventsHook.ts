@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks"
 import { RootState } from "@/app/store"
-import { ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvents, IFetchDraftSupplyPointEvents, IGetDraftSupplyPointPositions, IUpdateDraftSupplyPointEvents, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, getDraftSupplyPointEventPositions, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventPosotions, selectAvailableEventPosotionsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus, updateDraftSupplyPointEvent } from "../services/pointEvents/pointEventsSlice"
-import { LazyLoadableHook } from "../services/requestTypes"
+import { IAcceptDraftSupplyPointEvent, ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvent, IFetchDraftSupplyPointEvents, IGetDraftSupplyPointPositions, IUpdateDraftSupplyPointEvents, acceptDraftSupplyPointEvent, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, getDraftSupplyPointEventPositions, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventPosotions, selectAvailableEventPosotionsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus, updateDraftSupplyPointEvent } from "../services/pointEvents/pointEventsSlice"
+import { LazyLoadableHook, RequestInterface } from "../services/requestTypes"
 import { useEffect } from "react"
 
 interface IGetDraftSupplyPointEvents
@@ -12,6 +12,8 @@ export const useGetDraftSupplyPointEvents = ({
 	onSuccess,
 	onError,
 	lazyLoad,
+	searchPattern,
+	beginDate,
 }: IGetDraftSupplyPointEvents) => {
 	const dispatch = useAppDispatch()
 
@@ -22,14 +24,31 @@ export const useGetDraftSupplyPointEvents = ({
     selectAllPointEvents(state)
 	)
 
-	const fetch = () =>
-		dispatch(fetchDraftSupplyPointEvent({ }))
-
+	const fetch = () =>{
+		if(beginDate?.length === 10 && !Number.isNaN(+beginDate[9]) && searchPattern) {
+			dispatch(fetchDraftSupplyPointEvent({searchPattern, beginDate: beginDate.split('.')?.reverse()?.join('-') + 'T00:00'}))
+		}
+		if(beginDate?.length !== 10 && searchPattern) {
+			dispatch(fetchDraftSupplyPointEvent({searchPattern}))
+		}
+		if(beginDate?.length === 10 && !Number.isNaN(+beginDate[9]) && !searchPattern) {
+			dispatch(fetchDraftSupplyPointEvent({beginDate: beginDate.split('.')?.reverse()?.join('-') + 'T00:00'}))
+		}
+		if(beginDate?.length !== 10 && !searchPattern) {
+			dispatch(fetchDraftSupplyPointEvent({}))
+		}
+	}
 	useEffect(() => {
 		if (status === undefined && !lazyLoad) {
 			fetch()
 		}
 	}, [status])
+
+	useEffect(() => {
+		if (!lazyLoad) {
+			fetch()
+		}
+	}, [searchPattern, beginDate])
 
 	return {
 		status,
@@ -41,8 +60,7 @@ export const useGetDraftSupplyPointEvents = ({
 export const useGetDraftSupplyPointEventObjects = ({
 	onSuccess,
 	onError,
-	lazyLoad,
-}: IGetDraftSupplyPointEvents) => {
+}: RequestInterface<string>) => {
 	const dispatch = useAppDispatch()
 
 	const status = useAppSelector((state: RootState) =>
@@ -57,7 +75,7 @@ export const useGetDraftSupplyPointEventObjects = ({
 		dispatch(fetchDraftSupplyPointEventObjects({ }))
 
 	useEffect(() => {
-		if (status === undefined && !lazyLoad) {
+		if (status === undefined) {
 			fetch()
 		}
 	}, [status])
@@ -72,8 +90,7 @@ export const useGetDraftSupplyPointEventObjects = ({
 export const useGetDraftSupplyPointEventTypes = ({
 	onSuccess,
 	onError,
-	lazyLoad,
-}: IGetDraftSupplyPointEvents) => {
+}: RequestInterface<string>) => {
 	const dispatch = useAppDispatch()
 
 	const status = useAppSelector((state: RootState) =>
@@ -87,7 +104,7 @@ export const useGetDraftSupplyPointEventTypes = ({
 		dispatch(fetchDraftSupplyPointEventTypes({ }))
 
 	useEffect(() => {
-		if (status === undefined && !lazyLoad) {
+		if (status === undefined) {
 			fetch()
 		}
 	}, [status])
@@ -102,8 +119,7 @@ export const useGetDraftSupplyPointEventTypes = ({
 export const useGetDraftSupplyPointEventPositions = ({
 	onSuccess,
 	onError,
-	lazyLoad,
-}: IGetDraftSupplyPointEvents) => {
+}: RequestInterface<string>) => {
 	const dispatch = useAppDispatch()
 
 	// const status = useAppSelector((state: RootState) =>
@@ -167,11 +183,27 @@ export const useDeleteDraftSupplyPointEvent = () => {
 		id,
 		onSuccess,
 		onError,
-	}: IDeleteDraftSupplyPointEvents) =>
+	}: IDeleteDraftSupplyPointEvent) =>
 		dispatch(deleteDraftSupplyPointEvent({id, onSuccess, onError }))
 
 
 	return {
 		deletePointEvent: deleteDraftSupplyPointEventHandler,
+	}
+}
+
+export const useAcceptDraftSupplyPointEvent = () => {
+	const dispatch = useAppDispatch()
+
+	const acceptDraftSupplyPointEventHandler = ({
+		id,
+		onSuccess,
+		onError,
+	}: IAcceptDraftSupplyPointEvent) =>
+		dispatch(acceptDraftSupplyPointEvent({id, onSuccess, onError }))
+
+
+	return {
+		acceptPointEvent: acceptDraftSupplyPointEventHandler,
 	}
 }

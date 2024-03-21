@@ -14,6 +14,7 @@ import {
   IEventPosition,
   IEventType,
   IModifier,
+  IPeriodModifier,
   IPointEvent,
 } from "src/services/pointEvents/pointEventsSlice";
 import moment from "moment";
@@ -22,17 +23,26 @@ import InputMask from "react-input-mask";
 type Props = {
   onClose: () => void;
   currentEvent: IPointEvent | undefined;
+  searchPatternFilter: string
+  beginDateFilter?: string
 };
 
-const EventModal = ({ onClose, currentEvent }: Props) => {
+const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilter }: Props) => {
   const [currentObject, setCurrentObject] = useState<IEventObject>();
   const [currentType, setCurrentType] = useState<IEventType>();
-  const [currentPosition, setCurrentPosition] = useState<IEventPosition[]>([]);//две позиции для перехода, type=3
-  const [periods, setPeriods] = useState<IModifier[]>([
+  const [currentPosition, setCurrentPosition] = useState<IEventPosition[]>([]); //две позиции для перехода, type=3
+  const [periods, setPeriods] = useState<IPeriodModifier[]>([
     {
       BeginDate: "",
       EndDate: "",
-      Value: 0,
+      Value: [
+        currentPosition?.[0]?.InstCapacity,
+        currentPosition?.[1]?.InstCapacity,
+      ],
+      Position: [
+        currentPosition?.[0]?.Position,
+        currentPosition?.[1]?.Position,
+      ],
     },
   ]);
   const [beginDate, setBeginDate] = useState<string>(
@@ -40,13 +50,11 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
       ? moment(currentEvent?.BeginDate).format("DD.MM.YYYY")
       : moment.utc().add(5, "hours").format("DD.MM.YYYY")
   );
-  const SUPPLY_POINT_ID = currentObject?.SupplyPointMappingId as number
-
-  const { refresh } = useGetDraftSupplyPointEvents({});
+  const { refresh } = useGetDraftSupplyPointEvents({searchPattern: searchPatternFilter, beginDate: beginDateFilter});
 
   const { availableEventObjects } = useGetDraftSupplyPointEventObjects({});
   const { availableEventTypes } = useGetDraftSupplyPointEventTypes({});
-  const { availableEventPositions, getPositionsByPointId} =
+  const { availableEventPositions, getPositionsByPointId } =
     useGetDraftSupplyPointEventPositions({});
   const { createPointEvent } = useCreateDraftSupplyPointEvent();
   const { updatePointEvent } = useUpdateDraftSupplyPointEvent();
@@ -56,29 +64,79 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
   };
 
   useEffect(() => {
-    SUPPLY_POINT_ID  && getPositionsByPointId({supplyPointId: SUPPLY_POINT_ID})
-  }, [currentObject])
+    currentObject?.SupplyPointMappingId &&
+      getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointMappingId });
+  }, [currentObject]);
+
+  useEffect(() => {
+    !currentEvent &&
+      setPeriods(() => {
+        return [
+          {
+            BeginDate: "",
+            EndDate: "",
+            Value: [
+              currentPosition?.[0]?.InstCapacity,
+              currentPosition?.[1]?.InstCapacity,
+            ],
+            Position: [
+              currentPosition?.[0]?.Position,
+              currentPosition?.[1]?.Position,
+            ],
+          },
+        ];
+      });
+  }, [currentPosition, currentEvent]);
 
   useEffect(() => {
     if (!!currentEvent) {
       setCurrentObject(
         availableEventObjects?.find(
-          (obj) => obj.Id === +currentEvent?.SupplyPointId
+          (obj) => obj.SupplyPointId === +currentEvent?.SupplyPointId
         )
       );
       setCurrentType(
         availableEventTypes?.find((type) => type.Id === +currentEvent?.TypeId)
       );
-      setPeriods(currentEvent?.ModifierData);
-      SUPPLY_POINT_ID && setCurrentPosition([availableEventPositions?.[SUPPLY_POINT_ID]?.find(
-        (pos) => pos.Id === +currentEvent?.SupplyPointId
-      ) as IEventPosition])
+
+      const periodsUniq: Record<string, IPeriodModifier> = {};
+      const currentPositions: IEventPosition[] = []
+      
+      currentEvent?.ModifierData?.forEach((modi) => {
+        const dataSet = modi?.BeginDate + modi?.EndDate;
+        if (periodsUniq[dataSet] === undefined) {
+          periodsUniq[dataSet] = {
+            BeginDate: modi?.BeginDate,
+            EndDate: modi?.EndDate,
+            Value: [modi?.Value],
+            Position: [modi?.Position],
+          };
+        } else {
+          periodsUniq[dataSet] = {
+            ...periodsUniq[dataSet],
+            Value: [...periodsUniq[dataSet]?.Value, modi?.Value],
+            Position: [...periodsUniq[dataSet]?.Position, modi?.Position],
+          };
+        }
+      });
+      setPeriods(Object.values(periodsUniq));
+      for (const key in periodsUniq) {
+        periodsUniq?.[key]?.Position?.forEach((posName) => {
+          if (currentObject?.SupplyPointMappingId){
+          const selectedPos = availableEventPositions?.[currentObject?.SupplyPointMappingId]?.find((pos) => pos?.Position ===posName)
+          selectedPos && currentPositions?.push(selectedPos)
+          }
+        })
+      }
+      setCurrentPosition(currentPositions)
+      
     }
-  }, [currentEvent, availableEventObjects, availableEventTypes]);
+  }, [currentEvent, availableEventObjects, availableEventTypes, availableEventPositions]);
 
   useEffect(() => {
-    SUPPLY_POINT_ID && getPositionsByPointId({supplyPointId: SUPPLY_POINT_ID});
-  }, [SUPPLY_POINT_ID]);
+    currentObject?.SupplyPointMappingId &&
+      getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointMappingId });
+  }, [currentObject?.SupplyPointMappingId]);
 
   const addPeriod = () => {
     setPeriods((prev) => {
@@ -87,8 +145,14 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
         {
           BeginDate: "",
           EndDate: "",
-          Value: 0,
-          Position: currentPosition?.[0]?.Position,
+          Value: [
+            currentPosition?.[0]?.InstCapacity,
+            currentPosition?.[1]?.InstCapacity,
+          ],
+          Position: [
+            currentPosition?.[0]?.Position,
+            currentPosition?.[1]?.Position,
+          ],
         },
       ];
     });
@@ -97,20 +161,26 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
   const changePeriod = (
     e: React.ChangeEvent<HTMLInputElement>,
     i: number,
-    inputType: keyof IModifier
+    inputType: keyof IModifier,
+    valueIndex?: number
   ) => {
     setPeriods((prev) => {
       const newPeriods = [...prev];
       const value =
         inputType === "BeginDate" || inputType === "EndDate"
           ? String(moment().toJSON())?.split("T")?.[0] + "T" + e?.target?.value
-          : inputType === "Value"
-          ? +e?.target?.value
+          : inputType === "Value" && valueIndex === 0
+          ? [+e?.target?.value, prev?.[i]?.Value?.[1]]
+          : inputType === "Value" && valueIndex === 1
+          ? [prev?.[i]?.Value?.[0], +e?.target?.value]
           : e?.target?.value;
       newPeriods[i] = {
         ...newPeriods[i],
         [inputType]: value,
-        Position: currentPosition?.[0]?.Position,
+        Position: [
+          currentPosition?.[0]?.Position,
+          currentPosition?.[1]?.Position,
+        ],
       };
       return [...newPeriods];
     });
@@ -131,18 +201,54 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
       });
     } else {
       //save
-      if (currentType?.Id && currentObject?.Id) {
-        createPointEvent({
-          pointEvent: {
-            TypeId: currentType?.Id,
-            SupplyPointId: String(currentObject?.Id),
-            BeginDate: beginDate.split(".").reverse().join("-") + "T00:00",
-            ModifierData: periods,
-          },
-          onSuccess(data) {
-            refresh();
-          },
-        });
+      if (currentType?.Id && currentObject?.SupplyPointId) {
+        if (currentType?.Id !== 3) {
+          const modifier: IModifier[] = periods?.map((el) => {
+            return {
+              ...el,
+              Value: el?.Value?.[0],
+              Position: el?.Position?.[0],
+            };
+          });
+          createPointEvent({
+            pointEvent: {
+              TypeId: currentType?.Id,
+              SupplyPointId: String(currentObject?.SupplyPointId),
+              BeginDate: beginDate.split(".").reverse().join("-") + "T00:00",
+              ModifierData: modifier,
+            },
+            onSuccess(data) {
+              refresh();
+            },
+          });
+        } else {
+          const modifierFrom: IModifier[] = periods?.map((el) => {
+            return {
+              ...el,
+              Value: el?.Value?.[0],
+              Position: el?.Position?.[0],
+            };
+          });
+          const modifierTo: IModifier[] = periods?.map((el) => {
+            return {
+              ...el,
+              Value: el?.Value?.[1],
+              Position: el?.Position?.[1],
+            };
+          });
+
+          createPointEvent({
+            pointEvent: {
+              TypeId: currentType?.Id,
+              SupplyPointId: String(currentObject?.SupplyPointId),
+              BeginDate: beginDate.split(".").reverse().join("-") + "T00:00",
+              ModifierData: [...modifierFrom, ...modifierTo],
+            },
+            onSuccess(data) {
+              refresh();
+            },
+          });
+        }
       }
     }
   };
@@ -212,25 +318,33 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
               ))}
             </select>
           </div>
-          {currentType?.Id !== 3 ? ( 
+          {currentType?.Id !== 3 ? (
             <div>
               <select
                 className="custom-select"
-                onChange={(e) =>{
-                  currentObject?.SupplyPointMappingId && setCurrentPosition([availableEventPositions?.[currentObject?.SupplyPointMappingId]?.find(
-                    (pos) => pos.Id === +e?.target?.value
-                  ) as IEventPosition])}
-                }
+                onChange={(e) => {
+                  currentObject?.SupplyPointMappingId &&
+                    setCurrentPosition([
+                      availableEventPositions?.[
+                        currentObject?.SupplyPointMappingId
+                      ]?.find(
+                        (pos) => pos.Id === +e?.target?.value
+                      ) as IEventPosition,
+                    ]);
+                }}
                 value={currentPosition?.[0]?.Id}
               >
                 <option value={-1} key={-1}>
                   Позиция:
                 </option>
-                {currentObject?.SupplyPointMappingId &&availableEventPositions?.[currentObject?.SupplyPointMappingId]?.map((pos, i) => (
-                  <option value={pos?.Id} key={pos?.Id}>
-                    {pos?.Position} ({pos?.MappedSupplyPointName})
-                  </option>
-                ))}
+                {currentObject?.SupplyPointMappingId &&
+                  availableEventPositions?.[
+                    currentObject?.SupplyPointMappingId
+                  ]?.map((pos, i) => (
+                    <option value={pos?.Id} key={pos?.Id}>
+                      {pos?.Position} ({pos?.MappedSupplyPointName})
+                    </option>
+                  ))}
               </select>
             </div>
           ) : (
@@ -240,26 +354,29 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
                   с
                   <select
                     className="custom-select"
-                    onChange={(e) =>{
+                    onChange={(e) => {
                       setCurrentPosition((prev) => {
-                        const newPosition: IEventPosition[] = [...prev]
-                      newPosition[0] = availableEventPositions?.[SUPPLY_POINT_ID]?.find(
-                        (pos) => pos.Id === +e?.target?.value
-                      ) as IEventPosition
-                        return newPosition
-                      }
-                      )}
-                    }
-                    value={currentPosition?.[1]?.Id}
+                        const newPosition: IEventPosition[] = [...prev];
+                        newPosition[0] = availableEventPositions?.[
+                          currentObject?.SupplyPointMappingId as number
+                        ]?.find(
+                          (pos) => pos.Id === +e?.target?.value
+                        ) as IEventPosition;
+                        return newPosition;
+                      });
+                    }}
+                    value={currentPosition?.[0]?.Id}
                   >
                     <option value={-1} key={-1}>
                       Позиция:
                     </option>
-                    {availableEventPositions?.[SUPPLY_POINT_ID]?.map((pos, i) => (
-                      <option value={pos?.Id} key={pos?.Id}>
-                        {pos?.Position} ({pos?.MappedSupplyPointName})
-                      </option>
-                    ))}
+                    {availableEventPositions?.[currentObject?.SupplyPointMappingId as number]?.map(
+                      (pos, i) => (
+                        <option value={pos?.Id} key={pos?.Id}>
+                          {pos?.Position} ({pos?.MappedSupplyPointName})
+                        </option>
+                      )
+                    )}
                   </select>
                 </div>
                 <div className="red-line"></div>
@@ -267,26 +384,30 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
                   на
                   <select
                     className="custom-select"
-                    onChange={(e) =>{
+                    onChange={(e) => {
                       setCurrentPosition((prev) => {
-                        const newPosition: IEventPosition[] = [...prev]
-                      newPosition[1] = availableEventPositions?.[SUPPLY_POINT_ID]?.find(
-                        (pos) => pos.Id === +e?.target?.value
-                      ) as IEventPosition
-                        return newPosition
-                      }
-                      )}
-                    }
+                        const newPosition: IEventPosition[] = [...prev];
+                        newPosition[1] = availableEventPositions?.[
+                          currentObject?.SupplyPointMappingId as number
+                        ]?.find(
+                          (pos) => pos.Id === +e?.target?.value
+                        ) as IEventPosition;
+                        console.log(newPosition);
+                        return newPosition;
+                      });
+                    }}
                     value={currentPosition?.[1]?.Id}
                   >
                     <option value={-1} key={-1}>
                       Позиция:
                     </option>
-                    {availableEventPositions?.[SUPPLY_POINT_ID]?.map((pos, i) => (
-                      <option value={pos?.Id} key={pos?.Id}>
-                        {pos?.Position} ({pos?.MappedSupplyPointName})
-                      </option>
-                    ))}
+                    {availableEventPositions?.[currentObject?.SupplyPointMappingId as number]?.map(
+                      (pos, i) => (
+                        <option value={pos?.Id} key={pos?.Id}>
+                          {pos?.Position} ({pos?.MappedSupplyPointName})
+                        </option>
+                      )
+                    )}
                   </select>
                 </div>
               </div>
@@ -321,9 +442,9 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
                   </div>
                   <input
                     type="text"
-                    value={period?.Value}
+                    value={period?.Value?.[0]}
                     placeholder="Модификатор"
-                    onChange={(e) => changePeriod(e, i, "Value")}
+                    onChange={(e) => changePeriod(e, i, "Value", 0)}
                   />
                 </div>
               ))}
@@ -356,22 +477,22 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
                   </div>
                   <div className="pair-wrapper">
                     <div className="pair">
-                      с
+                      -
                       <input
                         type="text"
-                        value={period?.Value}
+                        value={period?.Value?.[0]}
                         placeholder="Модификатор"
-                        onChange={(e) => changePeriod(e, i, "Value")}
+                        onChange={(e) => changePeriod(e, i, "Value", 0)}
                       />{" "}
                     </div>
                     <div className="red-line"></div>
                     <div className="pair">
-                      до
+                      +
                       <input
                         type="text"
-                        value={period?.Value}
+                        value={period?.Value?.[1]}
                         placeholder="Модификатор"
-                        onChange={(e) => changePeriod(e, i, "Value")}
+                        onChange={(e) => changePeriod(e, i, "Value", 1)}
                       />
                     </div>
                   </div>
@@ -379,9 +500,9 @@ const EventModal = ({ onClose, currentEvent }: Props) => {
               ))}
             </div>
           )}
-            <div>
-              <button onClick={addPeriod}>+ Добавить период</button>
-            </div>
+          <div>
+            <button onClick={addPeriod}>+ Добавить период</button>
+          </div>
           <button onClick={saveOrUpdateEvent}>Сохранить</button>
         </div>
       </div>
