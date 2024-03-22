@@ -214,7 +214,9 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             },
             onSuccess(data) {
               refresh();
+              
               onClose()
+              alert('Обновлено')
             },
           });
         } else {
@@ -243,7 +245,9 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             },
             onSuccess(data) {
               refresh();
+              
               onClose()
+              alert('Обновлено')
             },
           });
         }
@@ -269,6 +273,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             onSuccess(data) {
               refresh();
               onClose()
+              alert('Сохранено')
             },
           });
         } else {
@@ -296,7 +301,9 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             },
             onSuccess(data) {
               refresh();
+              
               onClose()
+              alert('Сохранено')
             },
           });
         }

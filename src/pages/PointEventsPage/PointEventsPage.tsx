@@ -165,7 +165,7 @@ useEffect(() => {
               <tr data-tpl="row" className="table-row"  key={point?.Id}>
                 <td data-field="IsAccepted">
                   {role === 'acceptor' && <input className="toggle" type="checkbox" onChange={(e) => onAcceptEvent(e, point?.Id as number)} checked={point?.IsAccepted ? point?.IsAccepted : false}/>}
-                {role === 'lineman' &&<div  className="checkbox-container"> <input className="checkbox-status" type="checkbox" checked={point?.IsAccepted ? point?.IsAccepted : false} disabled={true}/></div>}
+                {role === 'lineman' && point?.IsAccepted && <div  className="checkbox-container"> <input className="checkbox-status" type="checkbox" checked={point?.IsAccepted ? point?.IsAccepted : false} disabled={true}/></div>}
                 </td>
                 <td data-field="BeginDate" onClick={(e) => onEditEvent(e, point)}>
                   <Moment format="D MMM YY">{point?.BeginDate}</Moment>
