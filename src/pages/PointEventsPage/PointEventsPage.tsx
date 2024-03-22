@@ -28,6 +28,8 @@ export const PointEventsPage = () => {
     setCurrentEvent(undefined);
   };
 
+  console.log(chartsData)
+
   const onEditEvent = (e: React.MouseEvent<HTMLTableDataCellElement, MouseEvent>, curr: IPointEvent) => {
     e.stopPropagation()
     setEventModalVisible(true);
@@ -63,6 +65,8 @@ useEffect(() => {
   allPointEvents?.forEach((point) => {
     const data: Series[] = []
     const dataModifier: Positions[] = []
+    const chart1: Positions[] = []
+    const chart2: Positions[] = []
     if (point?.TypeId !==3) {
       point?.ModifierData?.forEach((position, i) => {
         dataModifier?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
@@ -74,15 +78,23 @@ useEffect(() => {
       point?.ModifierData?.forEach((position, i) => {
         const dataSet = position?.BeginDate + position?.EndDate;
         if (periodsUniq[dataSet] === undefined) {
-        dataModifier?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+          chart1?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+          chart1?.push({date: +position?.EndDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
         periodsUniq[dataSet] = position?.Value
         }
         if (periodsUniq[dataSet] !== position?.Value) {
-          dataModifier?.push({date: +position?.EndDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+          chart2?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+          chart2?.push({date: +position?.EndDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
           periodsUniq[dataSet] = position?.Value
           }
       })
-      data?.push({label: point.SupplyPointName as string, data: dataModifier})
+      // data?.push({label: point.SupplyPointName as string, data: dataModifier})
+      // point?.ModifierData?.forEach((position, i) => {
+      //   chart1?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+      //   chart2?.push({date: +position?.EndDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+      // })
+      data?.push({label: point.SupplyPointName as string, data: chart1})
+      data?.push({label: point.SupplyPointName as string, data: chart2})
     }
     setChartsData((prev) => {return {...prev, [String(point?.Id)]: data}})
   })
@@ -171,7 +183,7 @@ useEffect(() => {
                     primaryAxis,
                     secondaryAxes,
                   }}
-                  style={{top: '0px', fill: 'red'}}
+                  style={{top: '0px'}}
                 /></div>}</td>
                 <td data-field="Value">
                   <div className="table-actions"><DeleteOutlined onClick={(e) => onDeleteEvent(e, point?.Id as number)}/></div>
