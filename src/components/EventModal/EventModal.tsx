@@ -25,11 +25,12 @@ type Props = {
   currentEvent: IPointEvent | undefined;
   searchPatternFilter: string
   beginDateFilter?: string
+  role: 'lineman' | 'acceptor'
 };
 
 const hours = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24']
 
-const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilter }: Props) => {
+const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilter, role }: Props) => {
   const [currentObject, setCurrentObject] = useState<IEventObject>();
   const [currentType, setCurrentType] = useState<IEventType>();
   const [currentPosition, setCurrentPosition] = useState<IEventPosition[]>([]); //две позиции для перехода, type=3
@@ -199,6 +200,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
         pointEvent: { ...(currentEvent as IPointEvent) },
         onSuccess(data) {
           refresh();
+          
         },
       });
     } else {
@@ -221,6 +223,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             },
             onSuccess(data) {
               refresh();
+              alert('Успешно')
             },
           });
         } else {
@@ -263,11 +266,11 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             onClick={onCloseModal}
             style={{ fontSize: "30px", width: "30px" }}
           />
-          <h2>{!!currentEvent ? "Редактирование" : "Создание"} события</h2>
-          <p>
+          <h2>{role === 'acceptor' ? 'Просмотр' : !!currentEvent ? "Редактирование" : "Создание"} события</h2>
+          {role === 'lineman' && <p>
             Введите данные для {!!currentEvent ? "редактирования" : "создания"}{" "}
             события и сохраните изменения
-          </p>
+          </p>}
           <InputMask
             mask="99.99.9999"
             name="BeginDate"
@@ -458,7 +461,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
                     type="text"
                     value={period?.Value?.[0]}
                     placeholder="Модификатор"
-                    // onChange={(e) => changePeriod(e, i, "Value", 0)}
+                    onChange={(e) => changePeriod(e, i, "Value", 0)}
                   />
                 </div>
               ))}
@@ -527,9 +530,9 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             </div>
           )}
           <div>
-            <button onClick={addPeriod}>+ Добавить период</button>
+          {role === 'lineman' && <button onClick={addPeriod}>+ Добавить период</button>}
           </div>
-          <button onClick={saveOrUpdateEvent}>Сохранить</button>
+          {role === 'lineman' && <button onClick={saveOrUpdateEvent}>Сохранить</button>}
         </div>
       </div>
     </div>

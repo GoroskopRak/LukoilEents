@@ -11,7 +11,11 @@ import { AxisOptions, Chart } from "react-charts";
 import { Positions, Series } from "./types";
 import InputMask from "react-input-mask";
 
-export const PointEventsPage = () => {
+interface Props {
+  role: 'acceptor' | 'lineman'
+}
+
+export const PointEventsPage = ({role}: Props) => {
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<IPointEvent>(); //true-edit, false-create
   const [chartsData, setChartsData] = useState<Record<string,Series[]>>({})
@@ -126,7 +130,7 @@ useEffect(() => {
       
       <div className="flex-between">
         <input className="search" placeholder="Поиск" onChange={(e) => setSearchPattern(e?.target?.value)}/>
-        <button className="create-evt-btn" onClick={onCreateEvent}>+ Создать событие</button>
+        {role === 'lineman' && <button className="create-evt-btn" onClick={onCreateEvent}>+ Создать событие</button>}
       </div>
 
       <button className="filter" onClick={() => setShowFiltersPanel((prev) => !prev)}>Фильтр</button>
@@ -162,7 +166,8 @@ useEffect(() => {
             allPointEvents?.map((point) => (
               <tr data-tpl="row" className="table-row"  key={point?.Id}>
                 <td data-field="IsAccepted">
-                  <input className="toggle" type="checkbox" onChange={(e) => onAcceptEvent(e, point?.Id as number)} checked={point?.IsAccepted ? point?.IsAccepted : false}/>
+                  {role === 'acceptor' && <input className="toggle" type="checkbox" onChange={(e) => onAcceptEvent(e, point?.Id as number)} checked={point?.IsAccepted ? point?.IsAccepted : false}/>}
+                {role === 'lineman' &&<div  className="checkbox-container"> <input className="checkbox-status" type="checkbox" checked={point?.IsAccepted ? point?.IsAccepted : false} disabled={true}/></div>}
                 </td>
                 <td data-field="BeginDate" onClick={(e) => onEditEvent(e, point)}>
                   <Moment format="D MMM YY">{point?.BeginDate}</Moment>
@@ -186,7 +191,7 @@ useEffect(() => {
                   style={{top: '0px'}}
                 /></div>}</td>
                 <td data-field="Value">
-                  <div className="table-actions"><DeleteOutlined onClick={(e) => onDeleteEvent(e, point?.Id as number)}/></div>
+                {role === 'lineman' && <div className="table-actions"><DeleteOutlined onClick={(e) => onDeleteEvent(e, point?.Id as number)}/></div>}
                 
                 </td>
               </tr>
@@ -200,6 +205,7 @@ useEffect(() => {
           onClose={() => setEventModalVisible(false)}
           searchPatternFilter={searchPattern}
           beginDateFilter={beginDate}
+          role={role}
         ></EventModal>
       )}
     </div>

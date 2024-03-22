@@ -20,7 +20,7 @@ const LoginPage = () => {
 		}, 1000)
 		dispatch(fetchLoginAppBasic({login,password, onSuccess(data) {
 			setAllowEntry(true)
-			navigate('/point-events')
+			navigate('/point-events-lineman')
 		}}))
 		// dispatch(fetch2({login,password}))
 	}

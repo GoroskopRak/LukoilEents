@@ -53,7 +53,7 @@ export const useGetDraftSupplyPointEvents = ({
 	return {
 		status,
 		refresh: fetch,
-        allPointEvents,
+        allPointEvents: [...allPointEvents]?.reverse(),
 	}
 }
 

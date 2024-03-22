@@ -11,7 +11,8 @@ function App() {
     <Routes>
       <Route path='/' element={<LoginPage />} />
       <Route path='/login' element={<LoginPage />} />
-      <Route path='/point-events' element={<PointEventsPage />} />
+      <Route path='/point-events-acceptor' element={<PointEventsPage role='acceptor'/>} />
+      <Route path='/point-events-lineman' element={<PointEventsPage role='lineman'/>} />
     </Routes>
   );
 }

@@ -115,3 +115,23 @@
   .toggle:checked:before {
     left: 32px;
   }
+
+  //checkbox
+  .checkbox-container:has(> input:disabled:checked)::after {
+    width: 10px;
+    height: 10px;
+    font-size: 9px;
+    background: #4CD964;
+    display: inline-block;
+    border-radius: 3px;
+    color: white;
+    position: relative;
+    content: "✔";
+    text-align: center;
+    float: left;
+    padding: 2px;
+}
+
+.checkbox-container input:disabled:checked {
+    display: none
+}
