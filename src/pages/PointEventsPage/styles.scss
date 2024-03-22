@@ -118,9 +118,6 @@
 
   //checkbox
 
-  .checkbox-container:has(> input:disabled:checked[false])::after {
-    border-radius: 50px;
-}
   .checkbox-container:has(> input:disabled:checked)::after {
     width: 10px;
     border-radius: 50px;
