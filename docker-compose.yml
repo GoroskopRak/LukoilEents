@@ -1,0 +1,7 @@
+services:
+  lukoil_events:
+    container_name: lukoil_events
+    build: .
+    ports:
+      - '5500:5500'
+
