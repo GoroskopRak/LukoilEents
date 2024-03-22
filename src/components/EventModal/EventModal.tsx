@@ -195,14 +195,59 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
 
   const saveOrUpdateEvent = () => {
     if (!!currentEvent) {
-      //upd
-      updatePointEvent({
-        pointEvent: { ...(currentEvent as IPointEvent) },
-        onSuccess(data) {
-          refresh();
-          
-        },
-      });
+      if (currentType?.Id && currentObject?.SupplyPointId) {
+        if (currentType?.Id !== 3) {
+          const modifier: IModifier[] = periods?.map((el) => {
+            return {
+              ...el,
+              Value: el?.Value?.[0],
+              Position: el?.Position?.[0],
+            };
+          });
+          updatePointEvent({
+            pointEvent: {
+              ...(currentEvent as IPointEvent),
+              TypeId: currentType?.Id,
+              SupplyPointId: String(currentObject?.SupplyPointId),
+              BeginDate: beginDate.split(".").reverse().join("-") + "T00:00",
+              ModifierData: modifier,
+            },
+            onSuccess(data) {
+              refresh();
+              onClose()
+            },
+          });
+        } else {
+          const modifierFrom: IModifier[] = periods?.map((el) => {
+            return {
+              ...el,
+              Value: el?.Value?.[0],
+              Position: el?.Position?.[0],
+            };
+          });
+          const modifierTo: IModifier[] = periods?.map((el) => {
+            return {
+              ...el,
+              Value: el?.Value?.[1],
+              Position: el?.Position?.[1],
+            };
+          });
+
+          updatePointEvent({
+            pointEvent: {
+              ...(currentEvent as IPointEvent),
+              TypeId: currentType?.Id,
+              SupplyPointId: String(currentObject?.SupplyPointId),
+              BeginDate: beginDate.split(".").reverse().join("-") + "T00:00",
+              ModifierData: [...modifierFrom, ...modifierTo],
+            },
+            onSuccess(data) {
+              refresh();
+              onClose()
+            },
+          });
+        }
+      }
     } else {
       //save
       if (currentType?.Id && currentObject?.SupplyPointId) {
@@ -223,7 +268,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             },
             onSuccess(data) {
               refresh();
-              alert('Успешно')
+              onClose()
             },
           });
         } else {
@@ -251,6 +296,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             },
             onSuccess(data) {
               refresh();
+              onClose()
             },
           });
         }

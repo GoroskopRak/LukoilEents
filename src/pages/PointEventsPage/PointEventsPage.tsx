@@ -32,8 +32,6 @@ export const PointEventsPage = ({role}: Props) => {
     setCurrentEvent(undefined);
   };
 
-  console.log(chartsData)
-
   const onEditEvent = (e: React.MouseEvent<HTMLTableDataCellElement, MouseEvent>, curr: IPointEvent) => {
     e.stopPropagation()
     setEventModalVisible(true);
@@ -192,7 +190,6 @@ useEffect(() => {
                 /></div>}</td>
                 <td data-field="Value">
                 {role === 'lineman' && <div className="table-actions"><DeleteOutlined onClick={(e) => onDeleteEvent(e, point?.Id as number)}/></div>}
-                
                 </td>
               </tr>
             ))}
