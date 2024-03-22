@@ -10,4 +10,4 @@ RUN yarn run build
 
 EXPOSE 5500
 
-ENTRYPOINT [ "yarn", "run", "serve", "-s", "/app/dist/", "-p", "5500" ]
+ENTRYPOINT [ "yarn", "run", "serve", "-s", "/app/build/", "-p", "5500" ]
