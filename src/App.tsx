@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import PointEventsPage from './pages/PointEventsPage/PointEventsPage';
 
 function App() {
+  console.log(process.env)
   return (
     <Routes>
       <Route path='/' element={<LoginPage />} />

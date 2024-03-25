@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+// использовать .env - пока не получилось, хотя библиотечку для нее скачал
 export const urlApi ='https://dev.enrsoft.ru'
 
 axios.interceptors.response.use(

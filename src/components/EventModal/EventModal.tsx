@@ -68,7 +68,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
 
   useEffect(() => {
     currentObject?.SupplyPointMappingId &&
-      getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointMappingId });
+      getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointId });
   }, [currentObject]);
 
   useEffect(() => {
@@ -136,10 +136,11 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
     }
   }, [currentEvent, availableEventObjects, availableEventTypes, availableEventPositions]);
 
-  useEffect(() => {
-    currentObject?.SupplyPointMappingId &&
-      getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointMappingId });
-  }, [currentObject?.SupplyPointMappingId]);
+  // это же дубликат верхнего useEffect
+  // useEffect(() => {
+  //   currentObject?.SupplyPointMappingId &&
+  //     getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointMappingId });
+  // }, [currentObject?.SupplyPointMappingId]);
 
   const addPeriod = () => {
     setPeriods((prev) => {

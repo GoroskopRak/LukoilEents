@@ -89,8 +89,9 @@ IEventObject[],
 >(
 	'DraftSupplyPointEventObjects/get',
 	async ({ onSuccess = () => null, onError = () => null }) => {
-		const response = await RestInstanse.get(`/user-supply-point-position-mapping`,{...getAuth()})
-		const data: IEventObject[] = await response.data
+		const response = await RestInstanse.get<IEventObject[]>(`/user-supply-point-position-mapping`,{...getAuth()})
+		const data: IEventObject[] =  [...new Map(response.data.map(item => [item.SupplyPointName, item])).values()];
+    console.log(data);
 
 		if (response.status === 200) {
 			onSuccess(data)

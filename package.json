@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@tsconfig/create-react-app": "^2.0.2",
-    "@types/react-input-mask": "^3.0.5"
+    "@types/react-input-mask": "^3.0.5",
+    "dotenv": "^16.4.5"
   }
 }
