@@ -1,6 +1,8 @@
-import axios from 'axios'
+import axios from 'axios';
 
-export const urlApi ='https://lvnp.enrsoft.ru'
+export const urlApi = location.hostname === 'localhost'
+	? 'https://dev.enrsoft.ru'
+	: `${location.origin}/api`
 
 axios.interceptors.response.use(
 	(response) => {
