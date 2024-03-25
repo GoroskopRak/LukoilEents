@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const urlApi ='https://dev.enrsoft.ru'
+export const urlApi ='https://lvnp.enrsoft.ru'
 
 axios.interceptors.response.use(
 	(response) => {

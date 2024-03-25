@@ -74,6 +74,16 @@
             }
         }
 
+        .modificator-container {
+            display: flex;
+            align-items: center;
+            column-gap: 10px;
+
+            input {
+                flex: 1 1 auto
+            }
+        }
+
         .period-container {
             display: flex;
             flex-direction: column;
