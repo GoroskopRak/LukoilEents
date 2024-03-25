@@ -172,7 +172,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
       const newPeriods = [...prev];
       const value =
         inputType === "BeginDate" || inputType === "EndDate"
-          ? String(moment().toJSON())?.split("T")?.[0] + "T" + e?.target?.value + ':00'
+          ? `T${e?.target?.value}:00`
           : inputType === "Value" && valueIndex === 0
           ? [+e?.target?.value, prev?.[i]?.Value?.[1]]
           : inputType === "Value" && valueIndex === 1
@@ -201,6 +201,8 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifier: IModifier[] = periods?.map((el) => {
             return {
               ...el,
+              BeginDate: `${beginDate}${el.BeginDate}`,
+              EndDate: `${beginDate}${el.EndDate}`,
               Value: (el?.Value?.[0] * (currentType.DraftSupplyPointEventOperationType == 'DOWN' ? -1 : 1)),
               Position: el?.Position?.[0],
             };
@@ -235,7 +237,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
               Position: el?.Position?.[1],
             };
           });
-
           updatePointEvent({
             pointEvent: {
               ...(currentEvent as IPointEvent),
@@ -260,6 +261,8 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifier: IModifier[] = periods?.map((el) => {
             return {
               ...el,
+              BeginDate: `${beginDate}${el.BeginDate}`,
+              EndDate: `${beginDate}${el.EndDate}`,
               Value: el?.Value?.[0],
               Position: el?.Position?.[0],
             };
@@ -281,6 +284,8 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifierFrom: IModifier[] = periods?.map((el) => {
             return {
               ...el,
+              BeginDate: `${beginDate}${el.BeginDate}`,
+              EndDate: `${beginDate}${el.EndDate}`,
               Value: el?.Value?.[0],
               Position: el?.Position?.[0],
             };
@@ -288,11 +293,12 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifierTo: IModifier[] = periods?.map((el) => {
             return {
               ...el,
+              BeginDate: `${beginDate}${el.BeginDate}`,
+              EndDate: `${beginDate}${el.EndDate}`,
               Value: el?.Value?.[1],
               Position: el?.Position?.[1],
             };
           });
-
           createPointEvent({
             pointEvent: {
               TypeId: currentType?.Id,
@@ -315,6 +321,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
   return (
     <div className="modal-background">
       <div className="modal-body">
+        {JSON.stringify(beginDate)}
         <div className="scroll-container">
           <LeftOutlined
             onClick={onCloseModal}
