@@ -1,9 +1,14 @@
 export const getAuth = () => {
+    const login = localStorage?.getItem('username');
+    const password = localStorage?.getItem('password');
     return {
         auth: {
-            username: localStorage?.getItem('username') as string,
-            password: localStorage?.getItem('password') as string
-      }
+            username: login,
+            password: password
+        },
+        headers: {
+            Authorization: btoa(unescape(encodeURIComponent(`${login}:${password}`)))
+        }
     }
     
 }
