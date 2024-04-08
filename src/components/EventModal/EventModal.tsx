@@ -321,7 +321,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
   return (
     <div className="modal-background">
       <div className="modal-body">
-        {JSON.stringify(beginDate)}
         <div className="scroll-container">
           <LeftOutlined
             onClick={onCloseModal}
