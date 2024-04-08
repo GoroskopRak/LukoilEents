@@ -10,7 +10,8 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { AxisOptions, Chart } from "react-charts";
 import { Positions, Series } from "./types";
 import InputMask from "react-input-mask";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import simpleEncryptDecrypt from "./simpleEncryptDecrypt";
 
 interface Props {
   role: 'acceptor' | 'lineman'
@@ -18,6 +19,7 @@ interface Props {
 
 export const PointEventsPage = ({role}: Props) => {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<IPointEvent>(); //true-edit, false-create
@@ -36,9 +38,11 @@ export const PointEventsPage = ({role}: Props) => {
   };
 
   useEffect(() => {
-    if (role === 'acceptor') {
-      searchParams?.get('username') && localStorage.setItem('username', searchParams?.get('username') as string)
-      searchParams?.get('password') && localStorage.setItem('password', searchParams?.get('password') as string)
+    if (role === 'acceptor' && searchParams?.get('up')?.length) {
+      const decryptedText = simpleEncryptDecrypt(searchParams?.get('up') as string, 'секретныйКлючЛукойл');
+      decryptedText && localStorage.setItem('username', decryptedText?.split('&')?.[0])
+      decryptedText && localStorage.setItem('password', decryptedText?.split('&')?.[1])
+      navigate('/point-events-acceptor')
     }
   }, [])
 
