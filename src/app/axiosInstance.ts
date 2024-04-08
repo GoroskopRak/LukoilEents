@@ -13,11 +13,13 @@ axios.interceptors.response.use(
 )
 
 export const BaseInstanse = axios.create({
+	withCredentials: true,
 	baseURL: `${urlApi}`,
 	headers: { "Content-Type": "multipart/form-data"}
 })
 
 export const RestInstanse = axios.create({
+	withCredentials: true,
 	baseURL: `${urlApi}/rest`,
 	// headers: { "Content-Type": "multipart/form-data","Access-Control-Allow-Origin": "*",
     // "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS", }
