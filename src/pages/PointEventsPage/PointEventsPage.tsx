@@ -10,12 +10,15 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { AxisOptions, Chart } from "react-charts";
 import { Positions, Series } from "./types";
 import InputMask from "react-input-mask";
+import { useSearchParams } from "react-router-dom";
 
 interface Props {
   role: 'acceptor' | 'lineman'
 }
 
 export const PointEventsPage = ({role}: Props) => {
+  const [searchParams] = useSearchParams()
+  
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<IPointEvent>(); //true-edit, false-create
   const [chartsData, setChartsData] = useState<Record<string,Series[]>>({})
@@ -31,6 +34,13 @@ export const PointEventsPage = ({role}: Props) => {
     setEventModalVisible(true);
     setCurrentEvent(undefined);
   };
+
+  useEffect(() => {
+    if (role === 'acceptor') {
+      searchParams?.get('username') && localStorage.setItem('username', searchParams?.get('username') as string)
+      searchParams?.get('password') && localStorage.setItem('password', searchParams?.get('password') as string)
+    }
+  }, [])
 
   const onEditEvent = (e: React.MouseEvent<HTMLTableDataCellElement, MouseEvent>, curr: IPointEvent) => {
     e.stopPropagation()
