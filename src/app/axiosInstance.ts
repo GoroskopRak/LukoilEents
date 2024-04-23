@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const urlApi = location.hostname === 'localhost'
 	? 'https://dev.enrsoft.ru'
-	: `${location.origin}/api`
+	: 'https://lvnp.enrsoft.ru'
 
 axios.interceptors.response.use(
 	(response) => {
