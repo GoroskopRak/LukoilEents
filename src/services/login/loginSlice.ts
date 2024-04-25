@@ -1,8 +1,9 @@
-import { BaseInstanse, RestInstanse } from '../../app/axiosInstance'
-import { RootState } from '@/app/store'
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { RootState } from '@/app/store';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { RequestState } from '../requestTypes'
+import { BaseInstanse, RestInstanse } from '../../app/axiosInstance';
+import { getAuth } from '../../helpers/getAuth';
+import { RequestState } from '../requestTypes';
 
 interface IInitialStateLogin {
 	loginAndPass: {
@@ -32,6 +33,7 @@ export const fetchLoginAppBasic = createAsyncThunk<
 	'loginAppBasic',
 	async ({ login, password, onSuccess = () => null, onError = () => null }) => {
 		const response = await BaseInstanse.post(`/login.html`, {login, password},{
+			...getAuth(),
 			auth: {
 				  username: login,
 				  password: password
