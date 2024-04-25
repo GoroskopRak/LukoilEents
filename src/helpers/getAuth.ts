@@ -1,6 +1,6 @@
 export const getAuth = () => {
-    const login = localStorage?.getItem('username');
-    const password = localStorage?.getItem('password');
+    const login = localStorage?.getItem('username') || '';
+    const password = localStorage?.getItem('password') || '';
     return {
         auth: {
             username: login,
