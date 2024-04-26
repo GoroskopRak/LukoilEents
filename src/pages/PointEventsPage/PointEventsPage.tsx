@@ -6,6 +6,7 @@ import {
 import {
   useAcceptDraftSupplyPointEvent,
   useDeleteDraftSupplyPointEvent,
+  useGetDraftSupplyPointEventTypes,
   useGetDraftSupplyPointEvents,
 } from "../../hooks/pointEventsHook";
 import Header from "../../components/Header/header";
@@ -39,6 +40,7 @@ export const PointEventsPage = ({ role }: Props) => {
     searchPattern,
     beginDate,
   });
+  const { availableEventTypes } = useGetDraftSupplyPointEventTypes({});
   const { deletePointEvent } = useDeleteDraftSupplyPointEvent();
   const { acceptPointEvent } = useAcceptDraftSupplyPointEvent();
 
@@ -114,7 +116,7 @@ export const PointEventsPage = ({ role }: Props) => {
       const dataModifier: Positions[] = [];
       const chart1: Positions[] = [];
       const chart2: Positions[] = [];
-      if (point?.TypeId !== 3) {
+      if (!availableEventTypes.find((types) => point?.TypeId === types.Id && types.DraftSupplyPointEventOperationType === 'TRANSITION')) {
         point?.ModifierData?.forEach((position, i) => {
           fillChartWithValues(dataModifier, position);
         });
