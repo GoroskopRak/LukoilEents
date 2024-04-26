@@ -93,11 +93,10 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
 
   useEffect(() => {
     if (!!currentEvent) {
-      setCurrentObject(
-        availableEventObjects?.find(
-          (obj) => obj.SupplyPointId === +currentEvent?.SupplyPointId
-        )
-      );
+      const currentObjectLocal = availableEventObjects?.find(
+        (obj) => obj.SupplyPointId === +currentEvent?.SupplyPointId
+      )
+      currentObjectLocal&&setCurrentObject(currentObjectLocal);
       setCurrentType(
         availableEventTypes?.find((type) => type.Id === +currentEvent?.TypeId)
       );
@@ -125,8 +124,8 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
       setPeriods(Object.values(periodsUniq));
       for (const key in periodsUniq) {
         periodsUniq?.[key]?.Position?.forEach((posName) => {
-          if (currentObject?.SupplyPointMappingId){
-          const selectedPos = availableEventPositions?.[currentObject?.SupplyPointMappingId]?.find((pos) => pos?.Position ===posName)
+          if (currentObjectLocal?.SupplyPointId){
+          const selectedPos = availableEventPositions?.[currentObjectLocal?.SupplyPointId]?.find((pos) => pos?.Position ===posName)
           selectedPos && currentPositions?.push(selectedPos)
           }
         })
@@ -162,6 +161,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
     });
   };
 
+  console.log(periods)
   const changePeriod = (
     e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>,
     i: number,
@@ -172,7 +172,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
       const newPeriods = [...prev];
       const value =
         inputType === "BeginDate" || inputType === "EndDate"
-          ? `T${e?.target?.value}:00`
+          ? beginDate?.split("T")?.[0] + "T" + e?.target?.value + ':00'
           : inputType === "Value" && valueIndex === 0
           ? [+e?.target?.value, prev?.[i]?.Value?.[1]]
           : inputType === "Value" && valueIndex === 1
@@ -191,7 +191,17 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
   };
 
   const changeBeginDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBeginDate(e?.target?.value);
+    const newBeginDate = e?.target?.value
+    setBeginDate(newBeginDate);
+    newBeginDate && setPeriods((prev) => {
+      const newPeriods = [...prev];
+      newPeriods?.map((period) => {
+        period.BeginDate=newBeginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + period.BeginDate?.split("T")?.[1]
+        period.EndDate=newBeginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + period.EndDate?.split("T")?.[1]
+      })
+      console.log(newPeriods)
+      return [...newPeriods];
+    });
   };
 
   const saveOrUpdateEvent = () => {
@@ -201,8 +211,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifier: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              BeginDate: `${beginDate}${el.BeginDate}`,
-              EndDate: `${beginDate}${el.EndDate}`,
               Value: (el?.Value?.[0] * (currentType.DraftSupplyPointEventOperationType == 'DOWN' ? -1 : 1)),
               Position: el?.Position?.[0],
             };
@@ -219,7 +227,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
               refresh();
               
               onClose()
-              alert('Обновлено')
+              // alert('Обновлено')
             },
           });
         } else {
@@ -249,7 +257,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
               refresh();
               
               onClose()
-              alert('Обновлено')
+              // alert('Обновлено')
             },
           });
         }
@@ -261,8 +269,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifier: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              BeginDate: `${beginDate}${el.BeginDate}`,
-              EndDate: `${beginDate}${el.EndDate}`,
               Value: el?.Value?.[0],
               Position: el?.Position?.[0],
             };
@@ -277,15 +283,13 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             onSuccess(data) {
               refresh();
               onClose()
-              alert('Сохранено')
+              // alert('Сохранено')
             },
           });
         } else {
           const modifierFrom: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              BeginDate: `${beginDate}${el.BeginDate}`,
-              EndDate: `${beginDate}${el.EndDate}`,
               Value: el?.Value?.[0],
               Position: el?.Position?.[0],
             };
@@ -293,8 +297,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifierTo: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              BeginDate: `${beginDate}${el.BeginDate}`,
-              EndDate: `${beginDate}${el.EndDate}`,
               Value: el?.Value?.[1],
               Position: el?.Position?.[1],
             };
@@ -310,7 +312,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
               refresh();
               
               onClose()
-              alert('Сохранено')
+              // alert('Сохранено')
             },
           });
         }
@@ -481,7 +483,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           {currentType?.DraftSupplyPointEventOperationType !== 'TRANSITION' ? (
             <div>
               {periods?.map((period, i) => (
-                <div className="period-container">
+                <div className="period-container" key={'period-'+i}>
                   <div className="period"> Период {i + 1}</div>
                   <div className="pair-wrapper">
                     <div className="pair">
@@ -531,7 +533,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           ) : (
             <div>
               {periods?.map((period, i) => (
-                <div className="period-container">
+                <div className="period-container" key={'period'+i}>
                   <div className="period"> Период {i + 1}</div>
                   <div className="pair-wrapper">
                     <div className="pair">

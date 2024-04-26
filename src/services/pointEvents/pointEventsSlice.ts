@@ -103,6 +103,7 @@ IEventObject[],
 )
 
 export interface IEventPosition {
+  SupplyPointId: number
   Id: number;
   UserId: number;
   SupplyPointMappingId: number;

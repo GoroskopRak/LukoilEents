@@ -32,7 +32,7 @@ export const fetchLoginAppBasic = createAsyncThunk<
 >(
 	'loginAppBasic',
 	async ({ login, password, onSuccess = () => null, onError = () => null }) => {
-		const response = await BaseInstanse.post(`/login.html`, {login, password},{
+		const response = await BaseInstanse.post(`/login.html`, {...getAuth()},{
 			...getAuth(),
 			auth: {
 				  username: login,

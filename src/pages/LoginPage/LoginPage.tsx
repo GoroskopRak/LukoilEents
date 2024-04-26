@@ -15,9 +15,9 @@ const LoginPage = () => {
 
 	const onLogin = (e:FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		setTimeout(() => {if (!!allowEntry) { 
+		setTimeout(() => {if (true) { 
 			setAllowEntry(false)}
-		}, 1000)
+		}, 500)
 		dispatch(fetchLoginAppBasic({login,password, onSuccess(data) {
 			setAllowEntry(true)
 			navigate('/point-events-lineman')
@@ -39,7 +39,7 @@ const LoginPage = () => {
 					<button type='submit'>Войти</button>
 				</form>
 				{allowEntry === true && 'Правильные логин или пароль'}
-				{allowEntry === false && <div className=''>Неправильные логин или пароль</div>}
+				{allowEntry === false && <div className=''>Ошибка</div>}
 				</div>
 			</div>
 			<div className='half-container red'>

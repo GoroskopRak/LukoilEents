@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { IPointEvent,  } from "../../services/pointEvents/pointEventsSlice";
 import { useAcceptDraftSupplyPointEvent, useDeleteDraftSupplyPointEvent, useGetDraftSupplyPointEvents } from "../../hooks/pointEventsHook";
 import Header from "../../components/Header/header";
@@ -23,7 +23,7 @@ export const PointEventsPage = ({role}: Props) => {
   
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<IPointEvent>(); //true-edit, false-create
-  const [chartsData, setChartsData] = useState<Record<string,Series[]>>({})
+  // const [chartsData, setChartsData] = useState<Record<string,Series[]>>({})
   const [searchPattern, setSearchPattern] = useState<string>('')
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [beginDate, setBeginDate] = useState<string>()
@@ -76,8 +76,9 @@ export const PointEventsPage = ({role}: Props) => {
     }
     }
   }
-
-useEffect(() => {
+  
+  const chartsData = useMemo(() => {
+    const chartsDataLocal : Record<string, Series[]> = {}
   allPointEvents?.forEach((point) => {
     const data: Series[] = []
     const dataModifier: Positions[] = []
@@ -85,9 +86,20 @@ useEffect(() => {
     const chart2: Positions[] = []
     if (point?.TypeId !==3) {
       point?.ModifierData?.forEach((position, i) => {
-        dataModifier?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
-        dataModifier?.push({date: +position?.EndDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+        // dataModifier?.push({date: +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+        // dataModifier?.push({date: +position?.EndDate?.split('T')?.[1]?.split(':')?.[0], value: position?.Value, })
+        const beginHour = +position?.BeginDate?.split('T')?.[1]?.split(':')?.[0]
+        const endHour =+position?.EndDate?.split('T')?.[1]?.split(':')?.[0]
+        for (let i=beginHour; i<=endHour; i++) {
+            dataModifier.push({value: position?.Value, date:i})
+        }
       })
+      for (let i=1; i<=24; i++) {
+        if (!dataModifier.find((el) => el.date ===i)) {
+          dataModifier.push({value:0, date:i})
+        }
+      }
+      dataModifier.sort((a,b) => a.date-b.date)
       data?.push({label: point.SupplyPointName as string, data: dataModifier})
     } else {
       const periodsUniq: Record<string, number> = {}
@@ -112,9 +124,14 @@ useEffect(() => {
       data?.push({label: point.SupplyPointName as string, data: chart1})
       data?.push({label: point.SupplyPointName as string, data: chart2})
     }
-    setChartsData((prev) => {return {...prev, [String(point?.Id)]: data}})
+    chartsDataLocal[String(point?.Id)]= [...data]
+    // setChartsData((prev) => {return {...prev, [String(point?.Id)]: data}})
   })
-}, [allPointEvents])
+  return chartsDataLocal
+  }, [allPointEvents])
+
+  // console.log(chartsData)
+
   const primaryAxis = React.useMemo(
     (): AxisOptions<Positions> => ({
       getValue: datum => datum.date,
