@@ -451,7 +451,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
                         ]?.find(
                           (pos) => pos.Id === +e?.target?.value
                         ) as IEventPosition;
-                        console.log(newPosition);
                         return newPosition;
                       });
                     }}
