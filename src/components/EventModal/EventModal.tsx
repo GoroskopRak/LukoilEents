@@ -167,7 +167,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
         inputType === "BeginDate" || inputType === "EndDate"
           ? beginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + e?.target?.value + ':00'
           : inputType === "Value" && valueIndex === 0
-          ? [-e?.target?.value, prev?.[i]?.Value?.[1]]
+          ? [-Math.abs(+e?.target?.value), prev?.[i]?.Value?.[1]]
           : inputType === "Value" && valueIndex === 1
           ? [prev?.[i]?.Value?.[0], +e?.target?.value]
           : e?.target?.value;
@@ -226,7 +226,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifierFrom: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              Value: -el?.Value?.[0],
+              Value: -Math.abs(el?.Value?.[0]),
               Position: el?.Position?.[0],
             };
           });
@@ -282,7 +282,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifierFrom: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              Value: -el?.Value?.[0],
+              Value: -Math.abs(el?.Value?.[0]),
               Position: el?.Position?.[0],
             };
           });
@@ -565,7 +565,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
                       -
                       <input
                         type="text"
-                        value={period?.Value?.[0]}
+                        value={Math.abs(period?.Value?.[0])}
                         placeholder="Модификатор"
                         onChange={(e) => changePeriod(e, i, "Value", 0)}
                       />{" "}
