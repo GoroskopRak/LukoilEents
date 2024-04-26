@@ -135,12 +135,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
     }
   }, [currentEvent, availableEventObjects, availableEventTypes, availableEventPositions]);
 
-  // дублирование useEffect выше
-  // useEffect(() => {
-  //   currentObject?.SupplyPointMappingId &&
-  //     getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointMappingId });
-  // }, [currentObject?.SupplyPointMappingId]);
-
   const addPeriod = () => {
     setPeriods((prev) => {
       return [
@@ -161,7 +155,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
     });
   };
 
-  console.log(periods)
   const changePeriod = (
     e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>,
     i: number,
@@ -199,7 +192,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
         period.BeginDate=newBeginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + period.BeginDate?.split("T")?.[1]
         period.EndDate=newBeginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + period.EndDate?.split("T")?.[1]
       })
-      console.log(newPeriods)
       return [...newPeriods];
     });
   };
