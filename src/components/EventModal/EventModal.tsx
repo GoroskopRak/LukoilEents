@@ -165,7 +165,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
   const changePeriod = (
     e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>,
     i: number,
-    inputType: keyof IModifier,
+    inputType: keyof IModifier | 'SingleValue',
     valueIndex?: number
   ) => {
     setPeriods((prev) => {
@@ -174,7 +174,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
         inputType === "BeginDate" || inputType === "EndDate"
           ? beginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + e?.target?.value + ':00'
           : inputType === "Value" && valueIndex === 0
-          ? [+e?.target?.value, prev?.[i]?.Value?.[1]]
+          ? [-e?.target?.value, prev?.[i]?.Value?.[1]]
           : inputType === "Value" && valueIndex === 1
           ? [prev?.[i]?.Value?.[0], +e?.target?.value]
           : e?.target?.value;
@@ -234,7 +234,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifierFrom: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              Value: el?.Value?.[0],
+              Value: -el?.Value?.[0],
               Position: el?.Position?.[0],
             };
           });
@@ -290,7 +290,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
           const modifierFrom: IModifier[] = periods?.map((el) => {
             return {
               ...el,
-              Value: el?.Value?.[0],
+              Value: -el?.Value?.[0],
               Position: el?.Position?.[0],
             };
           });
@@ -524,7 +524,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
                     type="text"
                     value={period?.Value?.[0]}
                     placeholder="Модификатор"
-                    onChange={(e) => changePeriod(e, i, "Value", 0)}
+                    onChange={(e) => changePeriod(e, i, "SingleValue", 0)}
                   /></div>
                   
                 </div>
