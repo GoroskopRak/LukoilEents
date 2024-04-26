@@ -172,7 +172,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
       const newPeriods = [...prev];
       const value =
         inputType === "BeginDate" || inputType === "EndDate"
-          ? beginDate?.split("T")?.[0] + "T" + e?.target?.value + ':00'
+          ? beginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + e?.target?.value + ':00'
           : inputType === "Value" && valueIndex === 0
           ? [+e?.target?.value, prev?.[i]?.Value?.[1]]
           : inputType === "Value" && valueIndex === 1
