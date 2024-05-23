@@ -49,6 +49,9 @@ interface IInitialStateLogin {
 export interface IFetchDraftSupplyPointEvents extends RequestInterface<IPointEvent[]> {
   searchPattern?: string
   beginDate?: string
+  endDate?: string
+  supplyPointId?: number
+  eventSupplyPointMappingId?: number
 }
 
 
@@ -57,10 +60,13 @@ IPointEvent[],
 IFetchDraftSupplyPointEvents
 >(
 	'DraftSupplyPointEvent/get',
-	async ({ searchPattern, beginDate, onSuccess = () => null, onError = () => null }) => {
+	async ({ searchPattern, beginDate, endDate, supplyPointId, eventSupplyPointMappingId ,onSuccess = () => null, onError = () => null }) => {
 		const response = await RestInstanse.get(`/draft-supply-point-event`,{...getAuth(), params:{
       searchPattern,
-      beginDate
+      beginDate,
+      endDate,
+      supplyPointId,
+      eventSupplyPointMappingId,
     }})
 		const data: IPointEvent[] = await response.data
 

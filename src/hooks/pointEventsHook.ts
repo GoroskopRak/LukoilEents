@@ -14,6 +14,9 @@ export const useGetDraftSupplyPointEvents = ({
 	lazyLoad,
 	searchPattern,
 	beginDate,
+	endDate,
+	supplyPointId,
+	eventSupplyPointMappingId,
 }: IGetDraftSupplyPointEvents) => {
 	const dispatch = useAppDispatch()
 
@@ -25,18 +28,7 @@ export const useGetDraftSupplyPointEvents = ({
 	)
 
 	const fetch = () =>{
-		if(beginDate?.length === 10 && !Number.isNaN(+beginDate[9]) && searchPattern) {
-			dispatch(fetchDraftSupplyPointEvent({searchPattern, beginDate: beginDate.split('.')?.reverse()?.join('-') + 'T00:00'}))
-		}
-		if(beginDate?.length !== 10 && searchPattern) {
-			dispatch(fetchDraftSupplyPointEvent({searchPattern}))
-		}
-		if(beginDate?.length === 10 && !Number.isNaN(+beginDate[9]) && !searchPattern) {
-			dispatch(fetchDraftSupplyPointEvent({beginDate: beginDate.split('.')?.reverse()?.join('-') + 'T00:00'}))
-		}
-		if(beginDate?.length !== 10 && !searchPattern) {
-			dispatch(fetchDraftSupplyPointEvent({}))
-		}
+			dispatch(fetchDraftSupplyPointEvent({searchPattern, beginDate, endDate, supplyPointId, eventSupplyPointMappingId}))
 	}
 	useEffect(() => {
 		if (status === undefined && !lazyLoad) {
@@ -48,7 +40,7 @@ export const useGetDraftSupplyPointEvents = ({
 		if (!lazyLoad) {
 			fetch()
 		}
-	}, [searchPattern, beginDate])
+	}, [searchPattern, beginDate, endDate, supplyPointId, eventSupplyPointMappingId])
 
 	return {
 		status,

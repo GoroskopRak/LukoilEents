@@ -17,4 +17,8 @@
     <div id="root"></div>
 
   </body>
+  <script>
+    let paragraph = document.querySelector('title');
+    paragraph.textContent = window.location.pathname === '/point-events-acceptor' ? 'Одобрение событий' : 'События'
+  </script>
 </html>

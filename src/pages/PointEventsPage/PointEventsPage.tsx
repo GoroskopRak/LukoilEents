@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  IEventObject,
+  IEventPosition,
   IModifier,
   IPointEvent,
 } from "../../services/pointEvents/pointEventsSlice";
 import {
   useAcceptDraftSupplyPointEvent,
   useDeleteDraftSupplyPointEvent,
+  useGetDraftSupplyPointEventObjects,
+  useGetDraftSupplyPointEventPositions,
   useGetDraftSupplyPointEventTypes,
   useGetDraftSupplyPointEvents,
 } from "../../hooks/pointEventsHook";
@@ -17,10 +21,14 @@ import EventModal from "../../components/EventModal/EventModal";
 import { DeleteOutlined } from "@ant-design/icons";
 import { AxisOptions, Chart } from "react-charts";
 import { Positions, Series } from "./types";
-import InputMask from "react-input-mask";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import simpleEncryptDecrypt from "./simpleEncryptDecrypt";
 import { fillChartWithValues, fillChartWithZeros, primaryAxis, secondaryAxes } from "./helpers";
+import { DatePicker } from "antd";
+import locale from "antd/es/date-picker/locale/ru_RU";
+import dayjs from 'dayjs';
+import {useDebounce} from "../../app/hooks";
+import 'moment/locale/ru';
 
 interface Props {
   role: "acceptor" | "lineman";
@@ -33,14 +41,25 @@ export const PointEventsPage = ({ role }: Props) => {
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<IPointEvent>(); //true-edit, false-create
   const [searchPattern, setSearchPattern] = useState<string>("");
+	const debouncedSearchPattern = useDebounce(searchPattern)
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
-  const [beginDate, setBeginDate] = useState<string>();
+  const [beginDate, setBeginDate] = useState<dayjs.Dayjs>();
+  const [endDate, setEndDate] = useState<dayjs.Dayjs>();
+  const [currentObject, setCurrentObject] = useState<IEventObject>();
+  const [currentPosition, setCurrentPosition] = useState<IEventPosition>();
 
   const { allPointEvents, refresh } = useGetDraftSupplyPointEvents({
-    searchPattern,
-    beginDate,
+    searchPattern: debouncedSearchPattern,
+    beginDate: beginDate?.format('YYYY-MM-DDT00:00'),
+    endDate: endDate?.format('YYYY-MM-DDT00:00'),
+    supplyPointId: currentObject?.SupplyPointId,
+    eventSupplyPointMappingId: currentPosition?.SupplyPointMappingId,
+
   });
+  const { availableEventObjects } = useGetDraftSupplyPointEventObjects({});
   const { availableEventTypes } = useGetDraftSupplyPointEventTypes({});
+  const { availableEventPositions, getPositionsByPointId } =
+  useGetDraftSupplyPointEventPositions({});
   const { deletePointEvent } = useDeleteDraftSupplyPointEvent();
   const { acceptPointEvent } = useAcceptDraftSupplyPointEvent();
 
@@ -48,6 +67,11 @@ export const PointEventsPage = ({ role }: Props) => {
     setEventModalVisible(true);
     setCurrentEvent(undefined);
   };
+
+  useEffect(() => {
+    currentObject?.SupplyPointMappingId &&
+      getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointId });
+  }, [currentObject]);
 
   useEffect(() => {
     if (role === "acceptor" && searchParams?.get("up")?.length) {
@@ -147,7 +171,7 @@ export const PointEventsPage = ({ role }: Props) => {
     });
     return chartsDataLocal;
   }, [allPointEvents]);
-
+  console.log(currentObject, availableEventPositions)
   return (
     <div className="event-page-container">
       <Header />
@@ -156,7 +180,7 @@ export const PointEventsPage = ({ role }: Props) => {
       <div className="flex-between">
         <input
           className="search"
-          placeholder="Поиск"
+          placeholder="Контекстный поиск"
           onChange={(e) => setSearchPattern(e?.target?.value)}
         />
         {role === "lineman" && (
@@ -172,17 +196,65 @@ export const PointEventsPage = ({ role }: Props) => {
       >
         Фильтр
       </button>
+      
 
       {showFiltersPanel && (
-        <div>
-          <InputMask
-            mask="99.99.9999"
-            name="BeginDate"
-            type="text"
-            placeholder="Дата начала"
-            value={beginDate}
-            onChange={(e) => setBeginDate(e?.target?.value)}
-          />
+        <div className="date-picker-container">
+          <DatePicker
+							locale={locale}
+              placeholder="Дата начала"
+							value={beginDate ? dayjs(beginDate) : undefined} format={'DD.MM.YYYY'}
+              onChange={(e) => setBeginDate(e)}
+              onReset={(e) => setBeginDate(undefined)}
+              className="date-picker"
+						/>
+            <DatePicker
+							locale={locale}
+              placeholder="Дата конца"
+							value={endDate ? dayjs(endDate) : undefined} format={'DD.MM.YYYY'}
+              onChange={(e) => setEndDate(e)}
+              onReset={(e) => setEndDate(undefined)}
+              className="date-picker"
+						/>
+            <select
+              className="custom-select"
+              onChange={(e) =>
+                setCurrentObject(
+                  availableEventObjects?.find(
+                    (obj) => obj.Id === +e?.target?.value
+                  )
+                )
+              }
+              value={currentObject?.Id}
+            >
+              <option value={-1} key={-1}>
+                Объект:
+              </option>
+              {availableEventObjects?.map((object, i) => (
+                <option value={object?.Id} key={object?.Id}>
+                  {object?.SupplyPointName}
+                </option>
+              ))}
+            </select>
+            <select
+                    className="custom-select"
+                    onChange={(e) => {
+                      console.log(currentObject, e.target.value, availableEventPositions)
+                      setCurrentPosition(availableEventPositions?.[currentObject?.SupplyPointId as number]?.find((pos) => pos?.Id === +e.target.value));
+                    }}
+                    value={currentPosition?.Id}
+                  >
+                    <option value={-1} key={-1}>
+                      Позиция:
+                    </option>
+                    {availableEventPositions?.[currentObject?.SupplyPointId as number]?.map(
+                      (pos, i) => (
+                        <option value={pos?.Id} key={pos?.Id}>
+                          {pos?.Position} ({pos?.MappedSupplyPointName})
+                        </option>
+                      )
+                    )}
+                  </select>
         </div>
       )}
 
@@ -229,7 +301,7 @@ export const PointEventsPage = ({ role }: Props) => {
                   data-field="BeginDate"
                   onClick={(e) => onEditEvent(e, point)}
                 >
-                  <Moment format="D MMM YY">{point?.BeginDate}</Moment>
+                  <Moment format="D MMM YY" locale={'ru'}>{point?.BeginDate}</Moment>
                 </td>
                 <td
                   data-field="TypeLocalName"
@@ -287,8 +359,11 @@ export const PointEventsPage = ({ role }: Props) => {
         <EventModal
           currentEvent={currentEvent}
           onClose={() => setEventModalVisible(false)}
-          searchPatternFilter={searchPattern}
-          beginDateFilter={beginDate}
+          searchPatternFilter={debouncedSearchPattern}
+          beginDateFilter={beginDate?.format('YYYY-MM-DDT00:00')}
+          endDateFilter={endDate?.format('YYYY-MM-DDT00:00')}
+          supplyPointIdFilter={currentObject?.SupplyPointId}
+          eventSupplyPointMappingIdFilter={currentPosition?.SupplyPointMappingId}
           role={role}
         ></EventModal>
       )}

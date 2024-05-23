@@ -19,6 +19,38 @@
         min-width: 170px;
         margin-left: 20px;
     }
+
+    .date-picker-container {
+        display: flex;
+        gap: 20px;
+    }
+
+    .date-picker {
+        width: 100%;
+        border: 1px solid lightgray;
+        border-radius: 10px;
+        padding: 10px;
+        height: 52px;
+        color: rgb(125, 137, 154);
+        background-color: rgb(249, 249, 249);
+      }
+
+      .custom-select {
+        width: 100%;
+        border: 1px solid lightgray;
+        border-radius: 10px;
+        padding: 10px;
+        height: 52px;
+        color: #7D899A;
+        background-color: #F9F9F9;
+
+        option {
+            border: 1px solid lightgray;
+        border-radius: 10px;
+        padding: 10px;
+        height: 52px !important;
+        }
+    }
 }
 
 .point-events-table{

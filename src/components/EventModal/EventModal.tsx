@@ -18,19 +18,24 @@ import {
   IPointEvent,
 } from "src/services/pointEvents/pointEventsSlice";
 import moment from "moment";
-import InputMask from "react-input-mask";
+import { DatePicker } from 'antd';
+import locale from 'antd/es/date-picker/locale/ru_RU';
+import dayjs from 'dayjs';
 
 type Props = {
   onClose: () => void;
   currentEvent: IPointEvent | undefined;
   searchPatternFilter: string
   beginDateFilter?: string
+  endDateFilter?: string
+  supplyPointIdFilter?: number
+  eventSupplyPointMappingIdFilter?: number
   role: 'lineman' | 'acceptor'
 };
 
 const hours = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24']
 
-const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilter, role }: Props) => {
+const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilter, endDateFilter, supplyPointIdFilter, eventSupplyPointMappingIdFilter, role }: Props) => {
   const [currentObject, setCurrentObject] = useState<IEventObject>();
   const [currentType, setCurrentType] = useState<IEventType>();
   const [currentPosition, setCurrentPosition] = useState<IEventPosition[]>([]); //две позиции для перехода, type=3
@@ -53,7 +58,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
       ? moment(currentEvent?.BeginDate).format("DD.MM.YYYY")
       : moment.utc().add(5, "hours").format("DD.MM.YYYY")
   );
-  const { refresh } = useGetDraftSupplyPointEvents({searchPattern: searchPatternFilter, beginDate: beginDateFilter});
+  const { refresh } = useGetDraftSupplyPointEvents({searchPattern: searchPatternFilter, beginDate: beginDateFilter, endDate: endDateFilter, supplyPointId: supplyPointIdFilter, eventSupplyPointMappingId: eventSupplyPointMappingIdFilter});
 
   const { availableEventObjects } = useGetDraftSupplyPointEventObjects({});
   const { availableEventTypes } = useGetDraftSupplyPointEventTypes({});
@@ -183,8 +188,8 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
     });
   };
 
-  const changeBeginDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newBeginDate = e?.target?.value
+  const changeBeginDate = (e: dayjs.Dayjs) => {
+    const newBeginDate = e.format('DD.MM.YYYY')
     setBeginDate(newBeginDate);
     newBeginDate && setPeriods((prev) => {
       const newPeriods = [...prev];
@@ -325,14 +330,12 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
             Введите данные для {!!currentEvent ? "редактирования" : "создания"}{" "}
             события и сохраните изменения
           </p>}
-          <InputMask
-            mask="99.99.9999"
-            name="BeginDate"
-            type="text"
-            placeholder="Дата"
-            value={beginDate}
-            onChange={changeBeginDate}
-          />
+          <DatePicker
+							locale={locale}
+							value={dayjs(beginDate, 'DD.MM.YYYY')} format={'DD.MM.YYYY'}
+              onChange={changeBeginDate}
+              className="date-picker"
+						/>
           <div>
             <select
               className="custom-select"
