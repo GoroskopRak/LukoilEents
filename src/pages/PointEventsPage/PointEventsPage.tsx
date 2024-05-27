@@ -322,7 +322,7 @@ export const PointEventsPage = ({ role }: Props) => {
                   {
                     new Set(
                       point?.ModifierData?.map(
-                        (modifier) => modifier.Position + ", "
+                        (modifier,i) =>   i+1 < point?.ModifierData.length ? modifier.Position + ', ': modifier.Position
                       )
                     )
                   }

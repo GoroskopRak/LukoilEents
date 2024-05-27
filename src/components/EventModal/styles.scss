@@ -59,6 +59,10 @@
                 input {
                     width: 110px;
                 }
+                
+                .datetime {
+                    width: 100px;
+                }
 
                 select {
                     width: 132px;
@@ -99,7 +103,7 @@
 
 
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 850px) {
     .modal-background {
         .modal-body {
             width: 100%;

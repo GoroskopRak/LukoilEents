@@ -18,9 +18,10 @@ import {
   IPointEvent,
 } from "src/services/pointEvents/pointEventsSlice";
 import moment from "moment";
-import { DatePicker } from 'antd';
+import { DatePicker, message } from 'antd';
 import locale from 'antd/es/date-picker/locale/ru_RU';
 import dayjs from 'dayjs';
+import { PeriodWrapper, changePeriod } from "./PeriodWrapper";
 
 type Props = {
   onClose: () => void;
@@ -32,8 +33,6 @@ type Props = {
   eventSupplyPointMappingIdFilter?: number
   role: 'lineman' | 'acceptor'
 };
-
-const hours = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24']
 
 const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilter, endDateFilter, supplyPointIdFilter, eventSupplyPointMappingIdFilter, role }: Props) => {
   const [currentObject, setCurrentObject] = useState<IEventObject>();
@@ -160,34 +159,6 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
     });
   };
 
-  const changePeriod = (
-    e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>,
-    i: number,
-    inputType: keyof IModifier | 'SingleValue',
-    valueIndex?: number
-  ) => {
-    setPeriods((prev) => {
-      const newPeriods = [...prev];
-      const value =
-        inputType === "BeginDate" || inputType === "EndDate"
-          ? beginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + e?.target?.value + ':00'
-          : inputType === "Value" && valueIndex === 0
-          ? [-Math.abs(+e?.target?.value), prev?.[i]?.Value?.[1]]
-          : inputType === "Value" && valueIndex === 1
-          ? [prev?.[i]?.Value?.[0], +e?.target?.value]
-          : e?.target?.value;
-      newPeriods[i] = {
-        ...newPeriods[i],
-        [inputType]: value,
-        Position: [
-          currentPosition?.[0]?.Position,
-          currentPosition?.[1]?.Position,
-        ],
-      };
-      return [...newPeriods];
-    });
-  };
-
   const changeBeginDate = (e: dayjs.Dayjs) => {
     const newBeginDate = e.format('DD.MM.YYYY')
     setBeginDate(newBeginDate);
@@ -202,6 +173,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
   };
 
   const saveOrUpdateEvent = () => {
+    if (periods?.[0].BeginDate !=='' && periods?.[0].EndDate !=='' && !!currentPosition) {
     if (!!currentEvent) {
       if (currentType?.Id && currentObject?.SupplyPointId) {
         if (currentType?.DraftSupplyPointEventOperationType !== 'TRANSITION') {
@@ -315,6 +287,9 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
         }
       }
     }
+  } else {
+    message.error('Не все поля заполнены', 1)
+  }
   };
 
   return (
@@ -479,48 +454,15 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
               {periods?.map((period, i) => (
                 <div className="period-container" key={'period-'+i}>
                   <div className="period"> Период {i + 1}</div>
-                  <div className="pair-wrapper">
-                    <div className="pair">
-                      с
-                      <select className="custom-select" value={period?.BeginDate?.split("T")?.[1]?.split(':')?.[0]} onChange={(e) => changePeriod(e, i, "BeginDate")}>
-                      <option value={-1} key={-1}>
-                        Время начала
-                      </option>
-                        {hours?.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
-                      </select>
-                      {/* <InputMask
-                        mask="99:99"
-                        value={period?.BeginDate?.split("T")?.[1]}
-                        placeholder="Время начала"
-                        onChange={(e) => changePeriod(e, i, "BeginDate")}
-                      /> */}
-                    </div>
-                    <div className="red-line"></div>
-                    <div className="pair">
-                      до
-                      <select className="custom-select" value={period?.EndDate?.split("T")?.[1]?.split(':')?.[0]} onChange={(e) => changePeriod(e, i, "EndDate")}>
-                      <option value={-1} key={-1}>
-                        Время Конца
-                      </option>
-                        {hours?.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
-                      </select>
-                      {/* <InputMask
-                        mask="99:99"
-                        value={period?.EndDate?.split("T")?.[1]}
-                        placeholder="Время конца"
-                        // onChange={(e) => changePeriod(e, i, "EndDate")}
-                      /> */}
-                    </div>
-                  </div>
+                  <PeriodWrapper period={period} setPeriods={setPeriods} beginDate={beginDate} currentPosition={currentPosition} i={i}/>
                   <div className="modificator-container">
                   {currentType?.DraftSupplyPointEventOperationType === 'DOWN' && <span>-</span>}
                   <input
                     type="text"
                     value={period?.Value?.[0]}
                     placeholder="Модификатор"
-                    onChange={(e) => changePeriod(e, i, "SingleValue", 0)}
+                    onChange={(e) => changePeriod(setPeriods, beginDate, currentPosition,e, i, "SingleValue", 0)}
                   /></div>
-                  
                 </div>
               ))}
             </div>
@@ -529,39 +471,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
               {periods?.map((period, i) => (
                 <div className="period-container" key={'period'+i}>
                   <div className="period"> Период {i + 1}</div>
-                  <div className="pair-wrapper">
-                    <div className="pair">
-                      с
-                      <select className="custom-select" value={period?.BeginDate?.split("T")?.[1]?.split(':')?.[0]} onChange={(e) => changePeriod(e, i, "BeginDate")}>
-                      <option value={-1} key={-1}>
-                        Время начала
-                      </option>
-                        {hours?.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
-                      </select>
-                      {/* <InputMask
-                        mask="99:99"
-                        value={period?.BeginDate?.split("T")?.[1]}
-                        placeholder="Время начала"
-                        // onChange={(e) => changePeriod(e, i, "BeginDate")}
-                      /> */}
-                    </div>
-                    <div className="red-line"></div>
-                    <div className="pair">
-                      до
-                      <select className="custom-select" value={period?.EndDate?.split("T")?.[1]?.split(':')?.[0]} onChange={(e) => changePeriod(e, i, "EndDate")}>
-                      <option value={-1} key={-1}>
-                        Время Конца
-                      </option>
-                        {hours?.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
-                      </select>
-                      {/* <InputMask
-                        mask="99:99"
-                        value={period?.EndDate?.split("T")?.[1]}
-                        placeholder="Время конца"
-                        // onChange={(e) => changePeriod(e, i, "EndDate")}
-                      /> */}
-                    </div>
-                  </div>
+                  <PeriodWrapper period={period} setPeriods={setPeriods} beginDate={beginDate} currentPosition={currentPosition} i={i}/>
                   <div className="pair-wrapper">
                     <div className="pair">
                       -
@@ -569,7 +479,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
                         type="text"
                         value={Math.abs(period?.Value?.[0])}
                         placeholder="Модификатор"
-                        onChange={(e) => changePeriod(e, i, "Value", 0)}
+                        onChange={(e) => changePeriod(setPeriods, beginDate, currentPosition,e, i, "Value", 0)}
                       />{" "}
                     </div>
                     <div className="red-line"></div>
@@ -579,7 +489,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
                         type="text"
                         value={period?.Value?.[1]}
                         placeholder="Модификатор"
-                        onChange={(e) => changePeriod(e, i, "Value", 1)}
+                        onChange={(e) => changePeriod(setPeriods, beginDate, currentPosition,e, i, "Value", 1)}
                       />
                     </div>
                   </div>
