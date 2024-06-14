@@ -21,7 +21,7 @@ import moment from "moment";
 import { DatePicker, message } from 'antd';
 import locale from 'antd/es/date-picker/locale/ru_RU';
 import dayjs from 'dayjs';
-import { PeriodWrapper, changePeriod } from "./PeriodWrapper";
+import { PeriodTransitionWrapper, PeriodWrapper, changePeriod } from "./PeriodWrapper";
 
 type Props = {
   onClose: () => void;
@@ -471,7 +471,7 @@ const EventModal = ({ onClose, currentEvent, searchPatternFilter, beginDateFilte
               {periods?.map((period, i) => (
                 <div className="period-container" key={'period'+i}>
                   <div className="period"> Период {i + 1}</div>
-                  <PeriodWrapper period={period} setPeriods={setPeriods} beginDate={beginDate} currentPosition={currentPosition} i={i}/>
+                  <PeriodTransitionWrapper period={period} setPeriods={setPeriods} beginDate={beginDate} currentPosition={currentPosition} i={i}/>
                   <div className="pair-wrapper">
                     <div className="pair">
                       -

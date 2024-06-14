@@ -1,6 +1,12 @@
 import React from "react";
 import { IEventPosition, IModifier, IPeriodModifier } from "src/services/pointEvents/pointEventsSlice";
 
+interface IPeriodWrapper {
+  period: IPeriodModifier, setPeriods: (value: React.SetStateAction<IPeriodModifier[]>) => void,
+    beginDate: string,
+    currentPosition: IEventPosition[], i: number
+}
+
 export const changePeriod = (
     setPeriods: (value: React.SetStateAction<IPeriodModifier[]>) => void,
     beginDate: string,
@@ -35,10 +41,7 @@ export const changePeriod = (
       return [...newPeriods];
     });
   };
-
-export const PeriodWrapper = ({period, setPeriods, beginDate, currentPosition, i}:{period: IPeriodModifier, setPeriods: (value: React.SetStateAction<IPeriodModifier[]>) => void,
-    beginDate: string,
-    currentPosition: IEventPosition[], i: number}) => {
+export const PeriodWrapper = ({period, setPeriods, beginDate, currentPosition, i}:IPeriodWrapper) => {
 
     const hours = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23']
     const minutes = ['00', '15','30','45']
@@ -81,3 +84,52 @@ export const PeriodWrapper = ({period, setPeriods, beginDate, currentPosition, i
 
 }
 
+
+export const changeTransitionPeriod = (
+  setPeriods: (value: React.SetStateAction<IPeriodModifier[]>) => void,
+  beginDate: string,
+  currentPosition: IEventPosition[],
+  e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>,
+  i: number,
+) => {
+  setPeriods((prev) => {
+    const newPeriods = [...prev];
+    const beginDateNew = beginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + "T" + e?.target?.value?.split('-')?.[0] + ':00'
+    const endDateNew = beginDate?.split("T")?.[0]?.split(".")?.reverse()?.join("-") + 'T23:59'
+    newPeriods[i] = {
+      ...newPeriods[i],
+      BeginDate: beginDateNew,
+      EndDate: endDateNew,
+      Position: [
+        currentPosition?.[0]?.Position,
+        currentPosition?.[1]?.Position,
+      ],
+    };
+    return [...newPeriods];
+  });
+};
+
+export const PeriodTransitionWrapper = ({period, setPeriods, beginDate, currentPosition, i}:IPeriodWrapper) => {
+  const intervals = ['00-01','01-02','02-03','03-04','04-05','05-06','06-07','07-08','08-09','09-10','10-11','11-12','12-13','13-14',
+  '14-15','15-16','16-17','17-18','18-19','19-20','20-21','21-22','22-23','23-00']
+
+  const intervalValue = intervals?.find((interval) => interval?.split('-')?.[0] === period?.BeginDate?.split("T")?.[1]?.split(':')?.[0] )
+
+  return (
+    <div className="pair-wrapper">
+                <div className="pair">
+                  с
+                  <select className="custom-select datetime" style={{width: '132px'}} value={intervalValue} onChange={(e) => changeTransitionPeriod(setPeriods, beginDate, currentPosition, e, i)}>
+                  <option value={-1} key={-1}>
+                    Интервал
+                  </option>
+                    {intervals?.map((interval) => <option key={interval} value={interval}>{interval}</option>)}
+                  </select>
+                </div>
+                <div className="red-line"></div>
+                <div className="pair">
+                  <div style={{width: '100px'}}>до конца дня</div>
+                </div>
+              </div>
+)
+  }
