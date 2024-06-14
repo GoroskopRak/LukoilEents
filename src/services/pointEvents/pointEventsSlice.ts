@@ -39,6 +39,7 @@ interface IInitialStateLogin {
     allPointEventsStatus: RequestState
 
     availableEventObjects: IEventObject[]
+    availableEventObjectsUniqNames: IEventObject[]
     availableEventObjectsStatus: RequestState
     availableEventTypes: IEventType[]
     availableEventTypesStatus: RequestState
@@ -96,7 +97,9 @@ IEventObject[],
 	'DraftSupplyPointEventObjects/get',
 	async ({ onSuccess = () => null, onError = () => null }) => {
 		const response = await RestInstanse.get<IEventObject[]>(`/user-supply-point-position-mapping`,{...getAuth()})
-		const data: IEventObject[] =  [...new Map(response.data.map(item => [item.SupplyPointName, item])).values()];
+    const data =  await response.data
+		const dataUniqNames: IEventObject[] =  [...new Map(response.data.map(item => [item.SupplyPointName, item])).values()];
+    console.log(data, response.data)
 
 		if (response.status === 200) {
 			onSuccess(data)
@@ -275,6 +278,7 @@ export const pointEventsSlice = createSlice({
         allPointEventsStatus: undefined,
 
         availableEventObjects: [],
+        availableEventObjectsUniqNames: [],
         availableEventObjectsStatus: undefined,
         availableEventTypes: [],
         availableEventTypesStatus: undefined,
@@ -289,6 +293,8 @@ export const pointEventsSlice = createSlice({
       });
       builder.addCase(fetchDraftSupplyPointEventObjects.fulfilled, (state, action) => {
         state.availableEventObjects = action.payload
+        state.availableEventObjectsUniqNames =  [...new Map(action.payload.map(item => [item.SupplyPointName, item])).values()];
+        state.availableEventObjectsStatus = 'fulfilled'
       });
       builder.addCase(fetchDraftSupplyPointEventTypes.fulfilled, (state, action) => {
         state.availableEventTypes = action.payload
@@ -310,6 +316,10 @@ export const selectAllPointEventsStatus = (
 export const selectAvailableEventObjects = (
 	state: RootState,
 ) => state.PointEvents.availableEventObjects
+
+export const selectAvailableEventObjectsUniqNames = (
+	state: RootState,
+) => state.PointEvents.availableEventObjectsUniqNames
 
 export const selectAvailableEventObjectsStatus = (
 	state: RootState,

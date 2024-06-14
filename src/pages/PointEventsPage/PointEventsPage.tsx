@@ -23,12 +23,17 @@ import { AxisOptions, Chart } from "react-charts";
 import { Positions, Series } from "./types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import simpleEncryptDecrypt from "./simpleEncryptDecrypt";
-import { fillChartWithValues, fillChartWithZeros, primaryAxis, secondaryAxes } from "./helpers";
+import {
+  fillChartWithValues,
+  fillChartWithZeros,
+  primaryAxis,
+  secondaryAxes,
+} from "./helpers";
 import { DatePicker } from "antd";
 import locale from "antd/es/date-picker/locale/ru_RU";
-import dayjs from 'dayjs';
-import {useDebounce} from "../../app/hooks";
-import 'moment/locale/ru';
+import dayjs from "dayjs";
+import { useDebounce } from "../../app/hooks";
+import "moment/locale/ru";
 
 interface Props {
   role: "acceptor" | "lineman";
@@ -41,7 +46,7 @@ export const PointEventsPage = ({ role }: Props) => {
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<IPointEvent>(); //true-edit, false-create
   const [searchPattern, setSearchPattern] = useState<string>("");
-	const debouncedSearchPattern = useDebounce(searchPattern)
+  const debouncedSearchPattern = useDebounce(searchPattern);
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [beginDate, setBeginDate] = useState<dayjs.Dayjs>();
   const [endDate, setEndDate] = useState<dayjs.Dayjs>();
@@ -50,16 +55,16 @@ export const PointEventsPage = ({ role }: Props) => {
 
   const { allPointEvents, refresh } = useGetDraftSupplyPointEvents({
     searchPattern: debouncedSearchPattern,
-    beginDate: beginDate?.format('YYYY-MM-DDT00:00'),
-    endDate: endDate?.format('YYYY-MM-DDT00:00'),
+    beginDate: beginDate?.format("YYYY-MM-DDT00:00"),
+    endDate: endDate?.format("YYYY-MM-DDT00:00"),
     supplyPointId: currentObject?.SupplyPointId,
     eventSupplyPointMappingId: currentPosition?.SupplyPointMappingId,
-
   });
-  const { availableEventObjects } = useGetDraftSupplyPointEventObjects({});
+  const { availableEventObjects, availableEventObjectsUniqNames } =
+    useGetDraftSupplyPointEventObjects({});
   const { availableEventTypes } = useGetDraftSupplyPointEventTypes({});
   const { availableEventPositions, getPositionsByPointId } =
-  useGetDraftSupplyPointEventPositions({});
+    useGetDraftSupplyPointEventPositions({});
   const { deletePointEvent } = useDeleteDraftSupplyPointEvent();
   const { acceptPointEvent } = useAcceptDraftSupplyPointEvent();
 
@@ -73,6 +78,13 @@ export const PointEventsPage = ({ role }: Props) => {
       getPositionsByPointId({ supplyPointId: currentObject?.SupplyPointId });
   }, [currentObject]);
 
+  console.log(
+    beginDate,
+    availableEventObjects,
+    currentObject,
+    availableEventObjectsUniqNames
+  );
+
   useEffect(() => {
     if (role === "acceptor" && searchParams?.get("up")?.length) {
       const decryptedText = simpleEncryptDecrypt(
@@ -83,9 +95,54 @@ export const PointEventsPage = ({ role }: Props) => {
         localStorage.setItem("username", decryptedText?.split("&")?.[0]);
       decryptedText &&
         localStorage.setItem("password", decryptedText?.split("&")?.[1]);
-      navigate("/point-events-acceptor");
     }
-  }, []);
+    if (
+      availableEventObjects?.length &&
+      availableEventObjectsUniqNames?.length &&
+      searchParams?.get("curDate") &&
+      searchParams?.get("spId")
+    ) {
+      //@ts-ignore
+      const year = +searchParams?.get("curDate")?.split("-")?.[0];
+      //@ts-ignore
+      const month = +searchParams?.get("curDate")?.split("-")?.[1];
+      //@ts-ignore
+      const date = +searchParams?.get("curDate")?.split("-")?.[2];
+      searchParams?.get("curDate") &&
+        year &&
+        month &&
+        date &&
+        setBeginDate(
+          dayjs()
+            .set("year", year)
+            .set("month", month)
+            .set("date", date)
+            .subtract(1, "month")
+        );
+      //@ts-ignore
+      getPositionsByPointId({ supplyPointId: +searchParams?.get("spId") });
+      setCurrentObject(
+        availableEventObjectsUniqNames?.find(
+          (uniq) =>
+            availableEventObjects?.find(
+              //@ts-ignore
+              (obj) => obj.Id === +searchParams?.get("spId")
+            )?.SupplyPointName === uniq?.SupplyPointName
+        )
+      );
+      console.log(
+        availableEventObjectsUniqNames?.find(
+          (uniq) =>
+            availableEventObjects?.find(
+              //@ts-ignore
+              (obj) => obj.Id === +searchParams?.get("spId")
+            )?.SupplyPointName === uniq?.SupplyPointName
+        )
+      );
+      setShowFiltersPanel(true);
+      navigate(`/point-events-acceptor`);
+    }
+  }, [availableEventObjects, availableEventObjectsUniqNames, searchParams]);
 
   const onEditEvent = (
     e: React.MouseEvent<HTMLTableDataCellElement, MouseEvent>,
@@ -140,7 +197,13 @@ export const PointEventsPage = ({ role }: Props) => {
       const dataModifier: Positions[] = [];
       const chart1: Positions[] = [];
       const chart2: Positions[] = [];
-      if (!availableEventTypes.find((types) => point?.TypeId === types.Id && types.DraftSupplyPointEventOperationType === 'TRANSITION')) {
+      if (
+        !availableEventTypes.find(
+          (types) =>
+            point?.TypeId === types.Id &&
+            types.DraftSupplyPointEventOperationType === "TRANSITION"
+        )
+      ) {
         point?.ModifierData?.forEach((position, i) => {
           fillChartWithValues(dataModifier, position);
         });
@@ -171,7 +234,7 @@ export const PointEventsPage = ({ role }: Props) => {
     });
     return chartsDataLocal;
   }, [allPointEvents]);
-  console.log(currentObject, availableEventPositions)
+
   return (
     <div className="event-page-container">
       <Header />
@@ -196,65 +259,74 @@ export const PointEventsPage = ({ role }: Props) => {
       >
         Фильтр
       </button>
-      
 
       {showFiltersPanel && (
         <div className="date-picker-container">
           <DatePicker
-							locale={locale}
-              placeholder="Дата начала"
-							value={beginDate ? dayjs(beginDate) : undefined} format={'DD.MM.YYYY'}
-              onChange={(e) => setBeginDate(e)}
-              onReset={(e) => setBeginDate(undefined)}
-              className="date-picker"
-						/>
-            <DatePicker
-							locale={locale}
-              placeholder="Дата конца"
-							value={endDate ? dayjs(endDate) : undefined} format={'DD.MM.YYYY'}
-              onChange={(e) => setEndDate(e)}
-              onReset={(e) => setEndDate(undefined)}
-              className="date-picker"
-						/>
-            <select
-              className="custom-select"
-              onChange={(e) =>
-                setCurrentObject(
-                  availableEventObjects?.find(
-                    (obj) => obj.Id === +e?.target?.value
-                  )
+            locale={locale}
+            placeholder="Дата начала"
+            value={beginDate ? dayjs(beginDate) : undefined}
+            format={"DD.MM.YYYY"}
+            onChange={(e) => setBeginDate(e)}
+            onReset={(e) => setBeginDate(undefined)}
+            className="date-picker"
+          />
+          <DatePicker
+            locale={locale}
+            placeholder="Дата конца"
+            value={endDate ? dayjs(endDate) : undefined}
+            format={"DD.MM.YYYY"}
+            onChange={(e) => setEndDate(e)}
+            onReset={(e) => setEndDate(undefined)}
+            className="date-picker"
+          />
+          <select
+            className="custom-select"
+            onChange={(e) =>
+              setCurrentObject(
+                availableEventObjectsUniqNames?.find(
+                  (obj) => obj.SupplyPointName === e?.target?.value
                 )
-              }
-              value={currentObject?.Id}
-            >
-              <option value={-1} key={-1}>
-                Объект:
+              )
+            }
+            value={currentObject?.SupplyPointName}
+          >
+            <option value={-1} key={-1}>
+              Объект:
+            </option>
+            {availableEventObjectsUniqNames?.map((object, i) => (
+              <option value={object?.SupplyPointName} key={object?.Id}>
+                {object?.SupplyPointName}
               </option>
-              {availableEventObjects?.map((object, i) => (
-                <option value={object?.Id} key={object?.Id}>
-                  {object?.SupplyPointName}
-                </option>
-              ))}
-            </select>
-            <select
-                    className="custom-select"
-                    onChange={(e) => {
-                      console.log(currentObject, e.target.value, availableEventPositions)
-                      setCurrentPosition(availableEventPositions?.[currentObject?.SupplyPointId as number]?.find((pos) => pos?.Id === +e.target.value));
-                    }}
-                    value={currentPosition?.Id}
-                  >
-                    <option value={-1} key={-1}>
-                      Позиция:
-                    </option>
-                    {availableEventPositions?.[currentObject?.SupplyPointId as number]?.map(
-                      (pos, i) => (
-                        <option value={pos?.Id} key={pos?.Id}>
-                          {pos?.Position} ({pos?.MappedSupplyPointName})
-                        </option>
-                      )
-                    )}
-                  </select>
+            ))}
+          </select>
+          <select
+            className="custom-select"
+            onChange={(e) => {
+              console.log(
+                currentObject,
+                e.target.value,
+                availableEventPositions
+              );
+              setCurrentPosition(
+                availableEventPositions?.[
+                  currentObject?.SupplyPointId as number
+                ]?.find((pos) => pos?.Id === +e.target.value)
+              );
+            }}
+            value={currentPosition?.Id}
+          >
+            <option value={-1} key={-1}>
+              Позиция:
+            </option>
+            {availableEventPositions?.[
+              currentObject?.SupplyPointId as number
+            ]?.map((pos, i) => (
+              <option value={pos?.Id} key={pos?.Id}>
+                {pos?.Position} ({pos?.MappedSupplyPointName})
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
@@ -301,7 +373,9 @@ export const PointEventsPage = ({ role }: Props) => {
                   data-field="BeginDate"
                   onClick={(e) => onEditEvent(e, point)}
                 >
-                  <Moment format="D MMM YY" locale={'ru'}>{point?.BeginDate}</Moment>
+                  <Moment format="D MMM YY" locale={"ru"}>
+                    {point?.BeginDate}
+                  </Moment>
                 </td>
                 <td
                   data-field="TypeLocalName"
@@ -321,8 +395,10 @@ export const PointEventsPage = ({ role }: Props) => {
                 >
                   {
                     new Set(
-                      point?.ModifierData?.map(
-                        (modifier,i) =>   i+1 < point?.ModifierData.length ? modifier.Position + ', ': modifier.Position
+                      point?.ModifierData?.map((modifier, i) =>
+                        i + 1 < point?.ModifierData.length
+                          ? modifier.Position + ", "
+                          : modifier.Position
                       )
                     )
                   }
@@ -360,10 +436,12 @@ export const PointEventsPage = ({ role }: Props) => {
           currentEvent={currentEvent}
           onClose={() => setEventModalVisible(false)}
           searchPatternFilter={debouncedSearchPattern}
-          beginDateFilter={beginDate?.format('YYYY-MM-DDT00:00')}
-          endDateFilter={endDate?.format('YYYY-MM-DDT00:00')}
+          beginDateFilter={beginDate?.format("YYYY-MM-DDT00:00")}
+          endDateFilter={endDate?.format("YYYY-MM-DDT00:00")}
           supplyPointIdFilter={currentObject?.SupplyPointId}
-          eventSupplyPointMappingIdFilter={currentPosition?.SupplyPointMappingId}
+          eventSupplyPointMappingIdFilter={
+            currentPosition?.SupplyPointMappingId
+          }
           role={role}
         ></EventModal>
       )}

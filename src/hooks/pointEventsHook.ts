@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks"
 import { RootState } from "@/app/store"
-import { IAcceptDraftSupplyPointEvent, ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvent, IFetchDraftSupplyPointEvents, IGetDraftSupplyPointPositions, IUpdateDraftSupplyPointEvents, acceptDraftSupplyPointEvent, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, getDraftSupplyPointEventPositions, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventPosotions, selectAvailableEventPosotionsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus, updateDraftSupplyPointEvent } from "../services/pointEvents/pointEventsSlice"
+import { IAcceptDraftSupplyPointEvent, ICreteDraftSupplyPointEvents, IDeleteDraftSupplyPointEvent, IFetchDraftSupplyPointEvents, IGetDraftSupplyPointPositions, IUpdateDraftSupplyPointEvents, acceptDraftSupplyPointEvent, createDraftSupplyPointEvent, deleteDraftSupplyPointEvent, fetchDraftSupplyPointEvent, fetchDraftSupplyPointEventObjects, fetchDraftSupplyPointEventTypes, getDraftSupplyPointEventPositions, selectAllPointEvents, selectAllPointEventsStatus, selectAvailableEventObjects, selectAvailableEventObjectsStatus, selectAvailableEventObjectsUniqNames, selectAvailableEventPosotions, selectAvailableEventPosotionsStatus, selectAvailableEventTypes, selectAvailableEventTypesStatus, updateDraftSupplyPointEvent } from "../services/pointEvents/pointEventsSlice"
 import { LazyLoadableHook, RequestInterface } from "../services/requestTypes"
 import { useEffect } from "react"
 
@@ -63,6 +63,10 @@ export const useGetDraftSupplyPointEventObjects = ({
     selectAvailableEventObjects(state)
 	)
 
+	const availableEventObjectsUniqNames = useAppSelector((state: RootState) =>
+		selectAvailableEventObjectsUniqNames(state)
+		)
+
 	const fetch = () =>
 		dispatch(fetchDraftSupplyPointEventObjects({ }))
 
@@ -76,6 +80,7 @@ export const useGetDraftSupplyPointEventObjects = ({
 		status,
 		refresh: fetch,
         availableEventObjects,
+		availableEventObjectsUniqNames
 	}
 }
 
